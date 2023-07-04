@@ -4,8 +4,9 @@ from . import views
 
 urlpatterns = [
     # path("", views.index, name="index"),
-    path("folder/<int:id>",views.FolderList.as_view()),
-    path("folder_detail/<int:id>",views.FolderDetail.as_view(),name='folder_detail'),
-    path("file/<int:id>",views.FileList.as_view()),
-    path("file_detail/<int:id>",views.FileDetail.as_view(),name='file_detail'),
+    path(r"folder/user",views.FolderList.as_view()),
+    path(r"folder_detail/<int:folder_id>/",views.FolderFiles.as_view(),name='folder_detail'),
+    path(r"file/folder/<int:folder_id>",views.SharedFolderDetail.as_view()),
+    path(r"file_create/folder/<int:folder_id>",views.FileCreate.as_view()),
+    path(r"file_detail/<int:file_id>",views.FileDetail.as_view(),name='file_detail'),
 ]

@@ -19,4 +19,4 @@ class FileSerializer(serializers.ModelSerializer):
     # a serializer for the File model
     class Meta:
         model = File
-        exclude = ['user']
+        fields = '__all__'
