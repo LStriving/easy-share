@@ -15,11 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import re_path as url
 from django.urls import path,include
 
+from rest_framework_swagger.views import get_swagger_view
+
+schema_view = get_swagger_view(title='EasyShare API')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('easyshare/',include('sharefiles.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^$', schema_view)
 ]

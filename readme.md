@@ -22,5 +22,9 @@ python manage.py migirate
 `
 
 `bash
+python manage.py collectstatic
+`
+
+`bash
 python manage.py runserver
 `

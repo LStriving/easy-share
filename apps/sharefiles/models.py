@@ -13,6 +13,11 @@ class Folder(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    class Meta:
+        ordering = ['id']
+
+def get_folder_name(instance, filename):
+    return 'uploads/'+ instance.folder.name + '/' + filename
 
 class File(models.Model):
     # a model for uploaded files
@@ -24,7 +29,10 @@ class File(models.Model):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
     # upload to MEDIA_ROOT/uploads/
-    upload = models.FileField(upload_to=f"uploads/{folder.name}")
+    upload = models.FileField(upload_to=get_folder_name)
     # a foreign key to the user who uploaded the file
+    class Meta:
+        ordering = ['id']
+
 
 
