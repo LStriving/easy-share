@@ -1,6 +1,9 @@
 import shutil
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions,status
+from django.shortcuts import get_list_or_404
 from EasyShare.settings import MEDIA_ROOT
+from rest_framework.response import Response
+from apps.access.utils import IsOwnerOrAdmin
 from .models import Folder, File
 from .serializers import FolderSerializer, FileSerializer
 from django.core.exceptions import ObjectDoesNotExist
@@ -47,7 +50,7 @@ class FolderDelete(generics.DestroyAPIView):
     '''
     serializer_class = FolderSerializer
     lookup_field = 'id'
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsOwnerOrAdmin]
 
     def get_queryset(self):
         id = self.kwargs['id']
@@ -69,11 +72,12 @@ class SharedFolderDetail(generics.ListAPIView):
     serializer_class = FileSerializer
 
     def get_queryset(self):
-        name = self.kwargs['folder_id']
+        id = self.kwargs['folder_id']
+        name = self.request.GET.get("name")
         password = self.request.GET.get("password")
-        folder = Folder.objects.filter(name=name,password=password).first()
-        return File.objects.filter(folder=folder)
-
+        folder = Folder.objects.filter(id=id,name=name,password=password).first()
+        qset = File.objects.filter(folder=folder)
+        return get_list_or_404(qset)
 
 '''File API'''
 # passed
@@ -104,9 +108,9 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
     '''
     # a view for retrieving, updating and deleting a file
     lookup_field = 'id'
-    queryset = File.objects.all()
     serializer_class = FileSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsOwnerOrAdmin]
+
     def get_queryset(self):
         file = self.kwargs['id']
         return File.objects.filter(id=file)
@@ -115,6 +119,7 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
         # remove local files
         try:
             file = File.objects.get(id=self.kwargs['id'])
+            self.check_object_permissions(request=request,obj=file)
             file_path = file.upload.path
             os.remove(file_path)
             file.delete()
@@ -123,4 +128,4 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
         except ObjectDoesNotExist:
             id = self.kwargs['id']
             print(f'File with id: {id} does not exist!')
-        return super().delete(request,*args, **kwargs)
+        return Response(status=status.HTTP_204_NO_CONTENT)
