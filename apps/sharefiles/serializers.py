@@ -7,7 +7,7 @@ class FolderSerializer(serializers.ModelSerializer):
     # a serializer for the Folder model
     class Meta:
         model = Folder
-        fields = '__all__'
+        exclude = ['user']
 
 class SharedFolderSerializer(serializers.ModelSerializer):
     # a serializer for the Folder model

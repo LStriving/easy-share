@@ -3,17 +3,15 @@
 @host = {{hostname}}:{{port}}
 @auth = Basic THN0cml2aW5nOjUyMDEzMTQuLlFx
 @createdAt = {{$datetime iso8601}}
-GET /easyshare/file/folder/9
-Host: {{host}}
-Content-Type: application/json
 
 ###
-GET /easyshare/folder/1
+GET /easyshare/folder_detail/1
+Authorization: {{auth}}
 Host: {{host}}
 
 
 ### file detail
-GET /easyshare/file_detail/5
+GET /easyshare/file_detail/2
 Host: {{host}}
 Authorization: {{auth}}
 
@@ -26,7 +24,7 @@ Content-Type: application/json
 {
     "name": "file",
     "password": "test",
-    "creator": 1
+    "user": 1
 }
 
 
@@ -37,7 +35,7 @@ Authorization: {{auth}}
 
 
 ### Create a folder 
-#  @prompt filename
+#  @prompt foldername
 #  @prompt password folder password
 POST /easyshare/folder/user HTTP/1.1
 Host: {{host}}
@@ -45,17 +43,30 @@ Authorization: {{auth}}
 Content-Type: application/json
 
 {
-    "name": "{{filename}}",
-    "password":"{{password}}",
-    "creator":1
+    "name": "{{foldername}}",
+    "password":"{{password}}"
+}
+
+### update password and name
+# @prompt fold_id
+# @prompt folder_name
+# @prompt password
+PUT /easyshare/folder_update/{{fold_id}} HTTP/1.1
+Content-Type: application/json
+Host: {{host}}
+Authorization: Basic test:123456
+
+{
+    "name":"{{folder_name}}",
+    "password":"{{password}}"
 }
 
 
-### upload a file to folder(folder needs to be created)
+### upload a png file to folder(folder needs to be created)
 # @prompt folder_id should be integer
+# @prompt file_path local file path(can be relative)
 # @prompt file_name should be precise and include file type
 # @prompt file_type e.g png
-# @prompt file_path local file path(can be relative)
 POST /easyshare/file_upload/folder/{{folder_id}} HTTP/1.1
 Host: {{host}}
 Authorization: {{auth}}
@@ -77,7 +88,7 @@ Content-Disposition: form-data; name="size"
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="type"
 
-png
+{{file_type}}
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="folder"
 
@@ -90,7 +101,7 @@ Content-Disposition: form-data; name="user"
 
 
 ### Creator view the folder files
-GET /easyshare/folder_detail/9 HTTP/1.1
+GET /easyshare/folder_detail/1 HTTP/1.1
 Content-Type: application/json
 Authorization: {{auth}}
 Host: {{host}}
@@ -99,13 +110,27 @@ Host: {{host}}
 ### Shared folder
 # @prompt foldername
 # @prompt password
-GET /easyshare/file/folder/9?name={{foldername}}&password={{password}} HTTP/1.1
+GET /easyshare/file/folder/1?name={{foldername}}&password={{password}} HTTP/1.1
 Content-Type: application/json
 Host: {{host}}
 
 
 ### Delete file
 # @prompt id file_id, should be an integer
-DELETE /easyshare/file_detail/{id}
-Authorization: Basic test:12346
+# @prompt username
+# @prompt password
+DELETE /easyshare/file_detail/{{id}}
+Authorization: Basic {{username}}:{{password}}
 Host: {{host}}
+
+
+
+### Delete folder
+# @prompt id folder_id, should be an integer
+# @prompt username
+# @prompt password
+DELETE /easyshare/folder_remove/{{id}}
+Authorization: Basic {{username}}:{{password}}
+# Authorization: {{auth}}
+Host: {{host}}
+

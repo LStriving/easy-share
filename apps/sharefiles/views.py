@@ -1,9 +1,7 @@
-import shutil
 from rest_framework import generics, permissions,status
 from django.shortcuts import get_list_or_404
-from EasyShare.settings import MEDIA_ROOT
 from rest_framework.response import Response
-from apps.access.utils import IsOwnerOrAdmin
+from apps.access.utils import *
 from .models import Folder, File
 from .serializers import FolderSerializer, FileSerializer
 from django.core.exceptions import ObjectDoesNotExist
@@ -26,8 +24,19 @@ class FolderList(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return Folder.objects.filter(creator=self.request.user)
+        return Folder.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
+class FolderUpdate(generics.UpdateAPIView):
+    """
+        put:
+            update folder's name or password
+    """
+    serializer_class = FolderSerializer
+    permission_classes = [IsOwner]
+    queryset = Folder.objects.all()
 
 class FolderFiles(generics.ListAPIView):
     '''
@@ -56,7 +65,10 @@ class FolderDelete(generics.DestroyAPIView):
         id = self.kwargs['id']
         try:
             folder = Folder.objects.get(id=id)
-            shutil.rmtree(MEDIA_ROOT + 'uploads/' + folder.name)
+            files = File.objects.filter(folder=folder)
+            for file in files:
+                os.remove(file.upload.path)
+                print(f"Remove:{file.upload.path}")
         except Exception:
             print(f'Warning: Local folder id: {id} remove failed! It may be moved.')
         return Folder.objects.filter(id=id)
@@ -84,10 +96,10 @@ class SharedFolderDetail(generics.ListAPIView):
 class FileCreate(generics.CreateAPIView):
     '''
         post:
-            upload file 
+            upload file (Return 400 when folder not created)
     '''
     # a view for listing and creating files
-    # lookup_field = 'folder_id'
+    lookup_field = 'folder_id'
     queryset = File.objects.all()
     serializer_class = FileSerializer
     permission_classes = [permissions.IsAuthenticated]
