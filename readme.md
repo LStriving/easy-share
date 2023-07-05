@@ -28,3 +28,12 @@ python manage.py collectstatic
 `bash
 python manage.py runserver
 `
+
+## TODO
+
+- [ ] Large file chunked upload
+- [ ] Api auth
+- [ ] Api test by file
+- [ ] User System
+- [ ] Multiple working envs
+- [ ] Nginx Deploy

@@ -1,7 +1,5 @@
 import shutil
 from rest_framework import generics, permissions
-from rest_framework.response import Response
-
 from EasyShare.settings import MEDIA_ROOT
 from .models import Folder, File
 from .serializers import FolderSerializer, FileSerializer
