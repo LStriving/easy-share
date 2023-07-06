@@ -25,6 +25,7 @@ schema_view = get_swagger_view(title='EasyShare API')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('easyshare/',include('sharefiles.urls')),
+    path("user/", include("access.urls")),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^$', schema_view)
 ]

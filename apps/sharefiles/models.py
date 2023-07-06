@@ -6,7 +6,7 @@ from access.models import User
 class Folder(models.Model):
     # a model for shared folders
     name = models.CharField(max_length=255)
-    password = models.CharField(max_length=255,null=False)
+    password = models.CharField(max_length=20,null=False)
     create_date = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     # a many-to-many relationship with the file model
