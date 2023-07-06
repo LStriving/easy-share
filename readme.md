@@ -2,32 +2,43 @@
 
 ## Installation
 
-Optional
-`bash
+### Optional
+
+```bash
 conda create -n dj python=3.10
 conda activate dj
-`
+```
 
-Requirements install
-`bash
+### Requirements install
+
+```bash
 pip install -r requirements.txt
-`
+```
 
-`bash
+```bash
 python manage.py makemigrations access sharefiles
-`
+```
 
-`bash
+```bash
 python manage.py migirate
-`
+```
 
-`bash
+```bash
 python manage.py collectstatic
-`
+```
 
-`bash
+```bash
 python manage.py runserver
-`
+```
+
+### Email
+
+Use email function: create file name `.env` under `EasyShare/` folder
+```
+EMAIL_HOST = ''
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+```
 
 ## TODO
 

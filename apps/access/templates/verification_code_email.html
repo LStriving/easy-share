@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: white;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        border: 1px solid green;
+      }
+      .header {
+        padding: 20px;
+        text-align: center;
+        background-color: rgb(233, 245, 231, 1);
+        color: green;
+      }
+      .content {
+        padding: 20px;
+      }
+      .logo {
+        width: 300px;
+        height: auto;
+      }
+      .code {
+        font-size: 24px;
+        font-weight: bold;
+        color: green;
+        border: 2px dashed green;
+        padding: 10px;
+        margin: 20px auto;
+        width: fit-content;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img
+          src="..\..\..\static\EasyShare-logo\cover.png"
+          alt="Website Logo"
+          class="logo"
+        />
+        <h1 color="green">Verify your email address</h1>
+      </div>
+      <div class="content">
+        <p>Hi there,</p>
+        <p>
+          Thank you for signing up for our website. To complete your
+          registration, please enter the verification code below:
+        </p>
+        <div class="code">{{verification_code}}</div>
+        <p>
+          This code will expire in 10 minutes. If you did not sign up for our
+          website, please ignore this email.
+        </p>
+        <p>Have a great day!</p>
+        <p>The Website Team</p>
+      </div>
+    </div>
+  </body>
+</html>

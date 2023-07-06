@@ -1,12 +1,13 @@
-import json
 from rest_framework import permissions,status
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView,RetrieveUpdateAPIView
 from django.contrib.auth import authenticate,login
 from apps.access.utils import *
+import json
 from .models import User
 from .serializers import *
+from django.contrib.auth import logout
 
 class UserRegisterAPIView(CreateAPIView):
     """
@@ -59,3 +60,39 @@ def change_password(request):
     else:
         user.set_password(new_password)
         return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET','POST'])
+@permission_classes([permissions.IsAuthenticated])
+def logout_view(request):
+    logout(request)
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET','POST'])
+@permission_classes([permissions.AllowAny])
+def send_email_code(request):
+    data = json.loads(request.body)
+    code = generate_verification_code()
+    email = data['email']
+    send_verification_email(email,code)
+    EmailCode.objects.create(email=email,code=code)
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET','POST'])
+@permission_classes([permissions.AllowAny])
+def reset_password_with_email(request):
+    data = json.loads(request.body)
+    email = data['email']
+    code = data['code']
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    try:
+        EmailCode.objects.get(email=email,code=code)
+        user.set_password(data['password'])
+        return Response(status=status.HTTP_200_OK)
+    except EmailCode.DoesNotExist:
+        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)

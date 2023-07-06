@@ -21,3 +21,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+    
+class EmailCodeSerializer(serializers.ModelField):
+    class Meta:
+        fields = ['email','code',]

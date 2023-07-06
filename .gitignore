@@ -7,3 +7,5 @@ static
 .vscode
 
 *.sqlite3
+
+.env
