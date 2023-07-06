@@ -35,10 +35,12 @@ python manage.py runserver
 
 Use email function: create file name `.env` under `EasyShare/` folder
 ```
-EMAIL_HOST = ''
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST=
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+SECRET_KEY=
 ```
+> Remember not to leave space in `.env` file
 
 ## TODO
 
