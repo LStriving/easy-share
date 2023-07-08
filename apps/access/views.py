@@ -50,7 +50,10 @@ def change_password(request):
             user change account password
     '''
     # get the JSON data from the request body
-    data = request.data
+    if request.method == 'GET':
+        data = request.GET
+    else:
+        data = json.loads(request.body)
     # do something with the data
     old_password = data.get("old_password")
     new_password = data.get("new_password")
@@ -72,27 +75,39 @@ def logout_view(request):
 @api_view(['GET','POST'])
 @permission_classes([permissions.AllowAny])
 def send_email_code(request):
-    data = json.loads(request.body)
+    if request.method == 'GET':
+        data = request.GET
+    else:
+        data = request.POST
     code = generate_verification_code()
-    email = data['email']
-    send_verification_email(email,code)
-    EmailCode.objects.create(email=email,code=code)
+    try:
+        email = data['email']
+    except KeyError:
+        return Response(data={'message':"'email' field is required"},
+                        status=status.HTTP_400_BAD_REQUEST)
+    send_verification_email.delay(email,code)
+    set_redis_emailcode(email,code)
     return Response(status=status.HTTP_200_OK)
 
 
 @api_view(['GET','POST'])
 @permission_classes([permissions.AllowAny])
 def reset_password_with_email(request):
-    data = json.loads(request.body)
+    if request.method == 'GET':
+        data = request.GET
+    else:
+        data = request.POST
     email = data['email']
     code = data['code']
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    try:
-        EmailCode.objects.get(email=email,code=code)
-        user.set_password(data['password'])
-        return Response(status=status.HTTP_200_OK)
-    except EmailCode.DoesNotExist:
+        return Response(data={'message':'Email not registered!'},
+                        status=status.HTTP_404_NOT_FOUND)
+    if not check_redis_emailcode(email,code):
         return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+    else:
+        user.set_password(data['password'])
+        user.save()
+        return Response(status=status.HTTP_200_OK)
+    

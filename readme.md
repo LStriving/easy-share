@@ -33,7 +33,7 @@ python manage.py runserver
 
 ### Email
 
-Use email function: create file name `.env` under `EasyShare/` folder
+Use email function: create file name `.env` under `EasyShare/settings` folder
 ```
 EMAIL_HOST=
 EMAIL_HOST_USER=
@@ -42,11 +42,28 @@ SECRET_KEY=
 ```
 > Remember not to leave space in `.env` file
 
+### Redis
+
+### Celery
+
+#### Local
+
+```bash
+celery -A EasyShare worker
+```
+
+#### Deploy
+
+```bash
+celery -A EasyShare worker -c gevent
+```
+
 ## TODO
 
 - [ ] Large file chunked upload
 - [x] Api auth
 - [x] Api test by file
-- [ ] User System
-- [ ] Multiple working envs
+- [x] User System
+- [x] Multiple working envs
 - [ ] Nginx Deploy
+- [ ] Logo url

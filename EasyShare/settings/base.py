@@ -14,8 +14,10 @@ from pathlib import Path
 import sys
 import os
 import environ
+from EasyShare.celery import app
+
 env = environ.Env()
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -164,3 +166,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = env('EMAIL_HOST')
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+EMAIL_CODE_EXPIRED_TIME = 60 * 10 # 10MINS

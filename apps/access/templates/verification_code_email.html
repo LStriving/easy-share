@@ -31,17 +31,16 @@
         padding: 10px;
         margin: 20px auto;
         width: fit-content;
+        align: center;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <img
-          src="..\..\..\static\EasyShare-logo\cover.png"
-          alt="Website Logo"
-          class="logo"
-        />
+        <img {% comment %} todo: web url {% endcomment %}
+        src="..\..\..\static\EasyShare-logo\cover.png" alt="Website Logo"
+        class="logo" />
         <h1 color="green">Verify your email address</h1>
       </div>
       <div class="content">
@@ -52,8 +51,8 @@
         </p>
         <div class="code">{{verification_code}}</div>
         <p>
-          This code will expire in 10 minutes. If you did not sign up for our
-          website, please ignore this email.
+          This code will expire in {{expired_time}} minutes. If you did not sign
+          up for our website, please ignore this email.
         </p>
         <p>Have a great day!</p>
         <p>The Website Team</p>

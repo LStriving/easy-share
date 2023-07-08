@@ -9,3 +9,5 @@ static
 *.sqlite3
 
 .env
+
+log
