@@ -2,6 +2,8 @@ from .base import *
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.test')
 
+ALLOWED_HOSTS = ['127.0.0.1','hailin545.cn']
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
