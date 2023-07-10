@@ -72,13 +72,13 @@ def logout_view(request):
     return Response(status=status.HTTP_200_OK)
 
 
-@api_view(['GET','POST'])
+@api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def send_email_code(request):
     if request.method == 'GET':
         data = request.GET
     else:
-        data = request.POST
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
     code = generate_verification_code()
     try:
         email = data['email']
