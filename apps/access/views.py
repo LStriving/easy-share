@@ -68,6 +68,12 @@ def change_password(request):
 @api_view(['GET','POST'])
 @permission_classes([permissions.IsAuthenticated])
 def logout_view(request):
+    '''
+        get:
+            logout
+        post:
+            logout
+    '''
     logout(request)
     return Response(status=status.HTTP_200_OK)
 
@@ -97,8 +103,13 @@ def reset_password_with_email(request):
         data = request.GET
     else:
         data = request.POST
-    email = data['email']
-    code = data['code']
+    try:
+        email = data['email']
+        code = data['code']
+    except KeyError:
+        return Response(data={'message':"'email' and 'code' fields are both required,\
+                            \n check request content type (multipart-form data)"},
+                        status=status.HTTP_400_BAD_REQUEST)
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:

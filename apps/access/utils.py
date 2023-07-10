@@ -28,7 +28,7 @@ class IsSelf(permissions.BasePermission):
 
 def generate_verification_code(length=6):
     letters = string.ascii_letters + string.digits
-    return ''.join(random.choice(letters) for _ in range(length))
+    return ''.join(random.choice(letters) for _ in range(length)).upper()
 
 @app.task
 def send_verification_email(user_mail,verify_code):
@@ -46,4 +46,7 @@ def set_redis_emailcode(email,code):
     r.setex(email,EMAIL_CODE_EXPIRED_TIME,code) # overide value when key exists
 
 def check_redis_emailcode(email,code):
-    return r.get(email).decode() == code
+    res = r.get(email)
+    if res is not None:
+        return res.decode() == code
+    return False
