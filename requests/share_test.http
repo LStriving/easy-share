@@ -65,8 +65,7 @@ Authorization: Basic test:123456
 ### upload a png file to folder(folder needs to be created)
 # @prompt folder_id should be integer
 # @prompt file_path local file path(can be relative)
-# @prompt file_name should be precise and include file type
-# @prompt file_type e.g png
+# @prompt file_name filename
 POST /easyshare/file_upload/folder/{{folder_id}} HTTP/1.1
 Host: {{host}}
 Authorization: {{auth}}
@@ -78,30 +77,14 @@ Content-Type: image/png
 
 < {{file_path}}
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="name"
-
-{{file_name}}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="size"
-
-0
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="type"
-
-{{file_type}}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="folder"
 
 {{folder_id}}
-------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="user"
-
-1
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 
 ### Creator view the folder files
-GET /easyshare/folder_detail/1 HTTP/1.1
+GET /easyshare/folder_detail/9 HTTP/1.1
 Content-Type: application/json
 Authorization: {{auth}}
 Host: {{host}}

@@ -11,4 +11,5 @@ urlpatterns = [
     path(r"file/folder/<int:folder_id>",views.SharedFolderDetail.as_view()),
     path(r"file_upload/folder/<int:folder_id>",views.FileCreate.as_view()),
     path(r"file_detail/<int:id>",views.FileDetail.as_view(),name='file_detail'),
+    path(r'file/copy_to_folder/<int:folder_id>',views.copy_files_to_folder)
 ]

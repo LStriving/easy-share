@@ -23,7 +23,6 @@ class UserRegisterAPIView(CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        user.set_password
         login(request,user)
         # return a JSON response with the token and the user data
         return Response(serializer.data, status=status.HTTP_201_CREATED)

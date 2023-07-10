@@ -18,7 +18,7 @@ class IsOwnerOrAdmin(permissions.BasePermission):
 
 class IsOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # check if the user is the owner or an admin
+        # check if the user is the owner 
         return request.user == obj.user 
     
 class IsSelf(permissions.BasePermission):

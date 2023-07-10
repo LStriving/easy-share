@@ -23,7 +23,7 @@ def get_folder_name(instance, filename):
 class File(models.Model):
     # a model for uploaded files
     name = models.CharField(max_length=255)
-    size = models.IntegerField()
+    size = models.IntegerField(help_text='File size (bytes)')
     type = models.CharField(max_length=255)
     upload_date = models.DateTimeField(auto_now_add=True)
     # the uploader
