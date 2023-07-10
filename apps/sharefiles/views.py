@@ -5,6 +5,7 @@ from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from apps.access.utils import *
+from apps.sharefiles.utils import file_same_or_not, random_prefix
 from .models import Folder, File
 from django.core.files import File as DJFile
 from .serializers import *
@@ -209,15 +210,20 @@ def copy_files_to_folder(request,folder_id):
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
         new_file_path = os.path.join(new_dir,file_storage_name)
-        try:
-            os.link(src_path,new_file_path)
-            # create new instance with trick    
-            src.upload = new_file_path
-            src.folder = folder
-            src.pk = None
-            src.save()
-        except FileExistsError:
-            print(f'{new_file_path} have Existed!')
-        
+
+        # modify file name when neccessary
+        if os.path.exists(new_file_path):
+            if not file_same_or_not(src_path,new_file_path):
+                new_file_path = os.path.join(new_dir,random_prefix()+file_storage_name)
+            else:
+                print(f"File {new_file_path} Existed!")
+                continue
+
+        os.link(src_path,new_file_path)
+        # create new instance with trick    
+        src.upload = new_file_path
+        src.folder = folder
+        src.pk = None
+        src.save()
 
     return Response(status=status.HTTP_200_OK)
