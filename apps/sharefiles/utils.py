@@ -2,6 +2,7 @@ import os
 import hashlib
 import uuid
 
+# TODO: needs to check
 def file_same_or_not(path1,path2):
     s1 = os.path.getsize(path1)
     s2 = os.path.getsize(path2)
