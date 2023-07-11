@@ -17,7 +17,7 @@ import os
 class IsFolderOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         # Check if the request user has a specific username or email
-        folder_id = view.kwargs['folder_id']
+        folder_id = view.kwargs.get('folder_id',0)
         folder = Folder.objects.filter(id=folder_id).first()
         if folder is not None:
             return request.user == folder.user
@@ -153,8 +153,8 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
             file = File.objects.get(id=self.kwargs['id'])
             self.check_object_permissions(request=request,obj=file)
             file_path = file.upload.path
-            os.remove(file_path)
             file.delete()
+            os.remove(file_path)
         except FileNotFoundError:
             print(f'Warning: Local file {file.upload.path} remove failed! It may be moved.')
         except ObjectDoesNotExist:
@@ -176,6 +176,7 @@ def copy_files_to_folder(request,folder_id):
         post:
             copy uploaded files to a folder by file id list
             content-type: multipart/form-data
+            ignore duplicate file
     '''
     # check owner
     data = request.POST
@@ -202,7 +203,8 @@ def copy_files_to_folder(request,folder_id):
         return Response(data={'message':"You are not the owner of the folder"},
                         status=status.HTTP_403_FORBIDDEN)
     
-    # copy files manually
+    # copy files manually using hardlink
+    existed_file_list = []
     for src in fileset:
         src_path = src.upload.path
         file_storage_name = os.path.basename(src.upload.path)
@@ -216,6 +218,7 @@ def copy_files_to_folder(request,folder_id):
             if not file_same_or_not(src_path,new_file_path):
                 new_file_path = os.path.join(new_dir,random_prefix()+file_storage_name)
             else:
+                existed_file_list.append(os.path.basename(src.upload.name))
                 print(f"File {new_file_path} Existed!")
                 continue
 
@@ -225,5 +228,10 @@ def copy_files_to_folder(request,folder_id):
         src.folder = folder
         src.pk = None
         src.save()
+
+    if len(existed_file_list) > 0:
+        res = ';'.join(existed_file_list)
+        return Response(status=status.HTTP_201_CREATED,
+                    data={'message':f'{res} have existed!'})
 
     return Response(status=status.HTTP_200_OK)
