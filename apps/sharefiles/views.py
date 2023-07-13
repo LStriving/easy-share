@@ -1,15 +1,19 @@
-import shutil
+import json
+import mimetypes
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
+from EasyShare.settings.base import MAX_HANDLE_FILE
 from apps.access.utils import *
-from apps.sharefiles.utils import file_same_or_not, random_prefix
+from apps.sharefiles.forms import ChunkFileForm
+from apps.sharefiles.utils import *
 from .models import Folder, File
 from django.core.files import File as DJFile
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
+from celery.result import AsyncResult
 
 import os
 
@@ -22,6 +26,11 @@ class IsFolderOwner(permissions.BasePermission):
         if folder is not None:
             return request.user == folder.user
         return False
+    
+class IsFolderOwnerOrAdmin(IsFolderOwner):
+    def has_permission(self, request, view):
+        isAdmin = bool(request.user and request.user.is_staff)
+        return super().has_permission(request, view) or isAdmin
 
 # Create your views here.
 # passed
@@ -127,6 +136,8 @@ class FileCreate(generics.CreateAPIView):
                     size=file.size,
                     type=file.content_type,
                     name=file.name)
+        self.request.user.storage += file.size
+        self.request.user.save()
 
 # passed
 class FileDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -162,13 +173,6 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
             print(f'File with id: {id} does not exist!')
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-'''
-Large File upload:
-    - 切片上传接口
-    - 切片校验，文件合并接口
-    - 文件存在验证接口
-'''
-
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def copy_files_to_folder(request,folder_id):
@@ -178,13 +182,17 @@ def copy_files_to_folder(request,folder_id):
             content-type: multipart/form-data
             ignore duplicate file
     '''
-    # check owner
+    # data check
     data = request.POST
     try:
         file_list  = eval(data['file_id_list'])
+        if not isinstance(file_list,list):
+            return Response(data={'message': '"file_id_list" should be a list'}
+                            ,status=status.HTTP_400_BAD_REQUEST)
     except KeyError:
         return Response(data={'message':'Params error'},
                         status=status.HTTP_400_BAD_REQUEST)
+    # check owner
     fileset = File.objects.filter(id__in = file_list)
     not_owner_file = []
     for file in fileset:
@@ -193,6 +201,9 @@ def copy_files_to_folder(request,folder_id):
     if len(not_owner_file) != 0:
         return Response(data={'message':f'Permission error with File id: {not_owner_file}'},
                         status=status.HTTP_403_FORBIDDEN)
+    if len(file_list) > MAX_HANDLE_FILE:
+        return Response(data={'message':f"Too many files at a time, no more than {MAX_HANDLE_FILE}"},
+                        status=status.HTTP_429_TOO_MANY_REQUESTS)
     try:
         folder = Folder.objects.get(id=folder_id)
     except Folder.DoesNotExist:
@@ -235,3 +246,102 @@ def copy_files_to_folder(request,folder_id):
                     data={'message':f'{res} have existed!'})
 
     return Response(status=status.HTTP_200_OK)
+
+'''
+Large File upload:
+    - [x] 切片上传接口
+    - 切片校验，文件合并接口
+    - 文件存在验证接口
+'''
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def large_file_upload_status(request):
+    '''
+        get:
+            check file upload status(progress)
+    '''
+    try:
+        file_md5 = request.GET['md5']
+    except KeyError:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"md5" field is required'})
+    upload_status = get_file_status(file_md5)
+    if upload_status is None:
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
+    elif upload_status:
+        # start to merge if all chunks uploaded
+        folder_name = Folder.objects.get(id=get_folder_id(file_md5)).name
+        cache.set(f'{file_md5}_merged',False)
+        task_id = merge_chunks.delay(file_md5,folder_name)
+        print(f'Celery Task: id({task_id}) started')
+        cache.set(f'{file_md5}_task_id',task_id)
+        return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
+    else:
+        return Response(status=status.HTTP_206_PARTIAL_CONTENT,
+                        data={'message':f'Index {upload_status} are(is) uploaded.'})
+    
+
+@api_view(['POST'])
+@permission_classes([IsFolderOwnerOrAdmin])
+def chunk_file_upload(request,folder_id):
+    '''
+        post:
+            file chunk upload (multipart-formdata)
+    '''
+    form = ChunkFileForm(request.POST,request.FILES)
+    if form.is_valid():
+        md5_value = form.cleaned_data['md5']
+        index = form.cleaned_data['index']
+        total = form.cleaned_data['total']
+        file_name = form.cleaned_data['file_name']
+        set_chunk_meta_cache(md5_value,index,total,file_name,folder_id)
+        handle_uploaded_chunk(request.FILES["file"],md5_value,index)
+        return Response(status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST,
+                        data={'message':'check the params'})
+    
+@api_view(['POST'])
+@permission_classes([IsFolderOwnerOrAdmin])
+def large_file_instance_create(request,folder_id):
+    '''
+        post:
+            create large file database instance (application/json)
+    '''
+    # Parse json params
+    data = request.body
+    data = json.loads(data)
+    file_md5 = data.get('md5')
+    
+    file_merged = cache.get(f'{file_md5}_merged')
+    if file_merged is None:
+        return Response(data={'message':f'File chunks not all uploaded,\
+                    you should call /easyshare/chunk/folder/{folder_id} to check upload status'},
+                    status=status.HTTP_303_SEE_OTHER)
+    else:
+        # check whether the process is truely processing
+        task_id = cache.get(f'{file_md5}_task_id')
+        res = AsyncResult(task_id)
+        task_state = res.state
+        if not file_merged:
+            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                data={'message':f'task {task_state} please wait and send request later'},
+                headers={'Retry-After':'60'})
+        else:
+            # create instance
+            with open(res,'r')as f:
+                file,not_created = File.objects.get_or_create(
+                    name=os.path.basename(res),
+                    user=request.user,
+                    folder__id=folder_id,
+                    size=os.path.getsize(res),
+                    defaults={
+                        "upload":DJFile(f),
+                        "type":mimetypes.guess_type(res)[0]
+                    }
+                )
+                file.save()
+                request.user.storage += file.size
+                request.user.save()
+            if not_created:
+                return Response(status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_201_CREATED)

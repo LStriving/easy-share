@@ -8,6 +8,7 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379",
+        "TIMEOUT": None,
     }
 }
 
@@ -22,5 +23,5 @@ app.conf.update(
     worker_concurrency=8,  # cpu cores
     worker_prefetch_multiplier=2,  # default 4
     worker_max_tasks_per_child=10,  # after work 10 tasks, worker will be terminated
-
+    task_track_started=True,
 )

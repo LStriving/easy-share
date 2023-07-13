@@ -11,5 +11,8 @@ urlpatterns = [
     path(r"file/folder/<int:folder_id>",views.SharedFolderDetail.as_view()),
     path(r"file_upload/folder/<int:folder_id>",views.FileCreate.as_view()),
     path(r"file_detail/<int:id>",views.FileDetail.as_view(),name='file_detail'),
-    path(r'file/copy_to_folder/<int:folder_id>',views.copy_files_to_folder)
+    path(r'file/copy_to_folder/<int:folder_id>',views.copy_files_to_folder,name='copy_local_file'),
+    path(r'chunk/folder/<int:folder_id>',views.chunk_file_upload,name='upload_chunk'),
+    path(r'large_file_upload_status',views.large_file_upload_status,name='check_upload_status'),
+    path(r'large_file_create/folder_id/<int:folder_id>',views.large_file_instance_create,name='create_large_file_instance')
 ]
