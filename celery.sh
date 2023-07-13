@@ -1,1 +1,1 @@
-nohup celery -A EasyShare worker > celery.log &
+nohup celery -A EasyShare worker > log/celery.log &
