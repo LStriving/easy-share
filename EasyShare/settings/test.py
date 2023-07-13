@@ -24,4 +24,5 @@ app.conf.update(
     worker_prefetch_multiplier=2,  # default 4
     worker_max_tasks_per_child=10,  # after work 10 tasks, worker will be terminated
     task_track_started=True,
+    broker_connection_retry_on_startup = True,
 )
