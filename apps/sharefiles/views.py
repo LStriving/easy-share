@@ -13,7 +13,6 @@ from .models import Folder, File
 from django.core.files import File as DJFile
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
-from celery.result import AsyncResult
 
 import os
 
@@ -267,17 +266,20 @@ def large_file_upload_status(request):
     upload_status = get_file_status(file_md5)
     if upload_status is None:
         return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
-    elif upload_status:
+    elif upload_status is True:
         # start to merge if all chunks uploaded
         folder_name = Folder.objects.get(id=get_folder_id(file_md5)).name
-        cache.set(f'{file_md5}_merged',False)
         task_id = merge_chunks.delay(file_md5,folder_name)
         print(f'Celery Task: id({task_id}) started')
-        cache.set(f'{file_md5}_task_id',task_id)
+        cache.get_or_set(f'{file_md5}_task_id',task_id)
         return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
-    else:
+    elif isinstance(upload_status,list):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
                         data={'message':f'Index {upload_status} are(is) uploaded.'})
+    elif isinstance(upload_status,str):
+        return Response(data=upload_status,status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data='unknown type')
     
 
 @api_view(['POST'])
@@ -294,7 +296,7 @@ def chunk_file_upload(request,folder_id):
         total = form.cleaned_data['total']
         file_name = form.cleaned_data['file_name']
         set_chunk_meta_cache(md5_value,index,total,file_name,folder_id)
-        handle_uploaded_chunk(request.FILES["file"],md5_value,index)
+        handle_uploaded_chunk(request.FILES["chunk"],md5_value,index)
         return Response(status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,
@@ -319,20 +321,22 @@ def large_file_instance_create(request,folder_id):
                     status=status.HTTP_303_SEE_OTHER)
     else:
         # check whether the process is truely processing
-        task_id = cache.get(f'{file_md5}_task_id')
-        res = AsyncResult(task_id)
-        task_state = res.state
-        if not file_merged:
+        if file_merged is False:
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                data={'message':f'task {task_state} please wait and send request later'},
+                data={'message':f'please wait and send request later'},
                 headers={'Retry-After':'60'})
         else:
+            res = file_merged
+            if isinstance(res,str):
+                if not os.path.exists(res):
+                    return Response(status=status.HTTP_417_EXPECTATION_FAILED,
+                                    data={'message':'Merged file not found, please try to upload it again'})
             # create instance
-            with open(res,'r')as f:
+            with open(res,'rb')as f:
                 file,not_created = File.objects.get_or_create(
                     name=os.path.basename(res),
                     user=request.user,
-                    folder__id=folder_id,
+                    folder=Folder.objects.get(id=folder_id),
                     size=os.path.getsize(res),
                     defaults={
                         "upload":DJFile(f),
@@ -340,8 +344,8 @@ def large_file_instance_create(request,folder_id):
                     }
                 )
                 file.save()
+            if not_created:
                 request.user.storage += file.size
                 request.user.save()
-            if not_created:
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_201_CREATED)

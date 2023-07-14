@@ -26,7 +26,7 @@ def file_same_or_not(path1,path2):
     return True
 
 def random_prefix():
-    return uuid.uuid4()
+    return str(uuid.uuid4()) + '_'
 
 '''
 Cache:
@@ -34,12 +34,22 @@ Cache:
     - <md5_uploaded, uploaded_list>
     - <file_name_md5,file_name>
     - <folder_id_md5,folder_id>
-    - <md5_merged, True>
+    - <md5_merged, destination>
 '''
 
 def get_file_status(md5):
+    '''
+        Return:
+            - None: not uploaded
+            - str: file path, uploaded/merged 
+            - list: uploading
+            - True: uploaded but not merged yet
+    '''
     total = cache.get(md5)
     if total is None:
+        des = cache.get(f'{md5}_merged')
+        if des is not None:
+            return des
         return None
     else:
         uploaded = cache.get(f"{md5}_uploaded")
@@ -73,9 +83,9 @@ def get_file_md5(filename):
     return md5_hash.hexdigest()
 
 def handle_uploaded_chunk(f,md5,index):
-    path = os.path.join(MEDIA_ROOT,'tmp',md5,index)
-    if os.path.exists(os.path.dirname(path)):
-        os.makedirs(path)
+    path = os.path.join(MEDIA_ROOT,'tmp',md5, str(index))
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
     with open(path, "wb+") as destination:
         for chunk in f.chunks():
             destination.write(chunk)
@@ -94,31 +104,42 @@ def split_file_into_chunks(filename, chunk_size):
 
 @app.task
 def merge_chunks(md5,folder_name):
+    # get locked:
+    if cache.get(f'{md5}_merged') is not None:
+        return 'Task launched in other place, skip...'
+    cache.set(f'{md5}_merged',False)
+
+    # start the job
     filename = cache.get(f'file_name_{md5}')
-    folder_id = cache.get(f'folder_id_{md5}')
     chunks_dir = os.path.join(MEDIA_ROOT,'tmp',md5)
     chunk_file_path = os.listdir(chunks_dir)
-    chunk_file_path = [os.path.join(chunks_dir,i) for i in chunk_file_path]
     total = cache.get(md5)
-    if len(chunks_dir) != total:
-        missing_chunk_index = [i for i in range(total) if i not in chunk_file_path]
+    if len(chunk_file_path) != total:
+        missing_chunk_index = [i for i in range(1,total+1) if str(i) not in chunk_file_path]
+        cache.delete(f'{md5}_merged')
         return missing_chunk_index
     else:
-        # start to merge
-        destination = os.path.join(MEDIA_ROOT,'uploads',
-                        folder_name,filename)
-        if os.path.exists(destination):
+        try:
+            chunk_file_path = [os.path.join(chunks_dir,i) for i in chunk_file_path]
+            # start to merge
             destination = os.path.join(MEDIA_ROOT,'uploads',
-                        folder_name,random_prefix()+filename)
-        with open(destination,'wb')as out:
-            for chunk in sorted(glob.glob(chunk_file_path)):
-                with open(chunk,'rb')as chunk:
-                    content = chunk.read()
-                    out.write(content)
-                os.remove(chunk)
-        
-        cache.delete_many([f'file_name_{md5}',f'folder_id_{md5}',f'{md5}_uploaded',md5])
-        if md5 != get_file_md5(destination):
-            return None
-        cache.set(f'{md5}_merged',True)
-        return destination
+                            folder_name,filename)
+            if os.path.exists(destination):
+                destination = os.path.join(MEDIA_ROOT,'uploads',
+                            folder_name,random_prefix()+filename)
+            with open(destination,'wb')as out:
+                for chunk in sorted((chunk_file_path)):
+                    with open(chunk,'rb')as f:
+                        content = f.read()
+                        out.write(content)
+                    os.remove(chunk)
+            
+            cache.delete_many([f'file_name_{md5}',f'folder_id_{md5}',f'{md5}_uploaded',md5])
+            if md5 != get_file_md5(destination):
+                cache.delete(f'{md5}_merged')
+                os.remove(destination)
+                return None
+            cache.set(f'{md5}_merged',destination)
+            return destination
+        except: 
+            cache.delete(f'{md5}_merged')
