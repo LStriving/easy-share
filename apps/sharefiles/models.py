@@ -32,6 +32,7 @@ class File(models.Model):
     # upload to MEDIA_ROOT/uploads/
     upload = models.FileField(upload_to=get_folder_name)
     # a foreign key to the user who uploaded the file
+    md5 = models.CharField(max_length=32,null=True)
     class Meta:
         ordering = ['id']
 

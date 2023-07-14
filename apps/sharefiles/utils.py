@@ -105,8 +105,11 @@ def split_file_into_chunks(filename, chunk_size):
 @app.task
 def merge_chunks(md5,folder_name):
     # get locked:
-    if cache.get(f'{md5}_merged') is not None:
+    res = cache.get(f'{md5}_merged')
+    if res is False:
         return 'Task launched in other place, skip...'
+    elif isinstance(res,str):
+        return res 
     cache.set(f'{md5}_merged',False)
 
     # start the job

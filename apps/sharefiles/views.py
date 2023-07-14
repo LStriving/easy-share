@@ -164,8 +164,10 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
             file = File.objects.get(id=self.kwargs['id'])
             self.check_object_permissions(request=request,obj=file)
             file_path = file.upload.path
+            md5 = file.md5
             file.delete()
-            os.remove(file_path)
+            if md5 is None:
+                os.remove(file_path)
         except FileNotFoundError:
             print(f'Warning: Local file {file.upload.path} remove failed! It may be moved.')
         except ObjectDoesNotExist:
@@ -270,9 +272,7 @@ def large_file_upload_status(request):
     elif upload_status is True:
         # start to merge if all chunks uploaded
         folder_name = Folder.objects.get(id=get_folder_id(file_md5)).name
-        task_id = merge_chunks.delay(file_md5,folder_name)
-        print(f'Celery Task: id({task_id}) started')
-        cache.get_or_set(f'{file_md5}_task_id',task_id)
+        merge_chunks.delay(file_md5,folder_name)
         return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
     elif isinstance(upload_status,set):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
@@ -324,6 +324,12 @@ def large_file_instance_create(request,folder_id):
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data={'message':'"md5" field is required in JSON'})
     
+    try:
+        folder = Folder.objects.get(id=folder_id)
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,
+                        data={'message':"folder not found"})
+
     file_merged = cache.get(f'{file_md5}_merged')
     if file_merged is None:
         return Response(data={'message':f'File chunks not all uploaded or Merged,\
@@ -342,21 +348,22 @@ def large_file_instance_create(request,folder_id):
                     return Response(status=status.HTTP_417_EXPECTATION_FAILED,
                                     data={'message':'Merged file not found, please try to upload it again'})
             # create instance
-            with open(res,'rb')as f:
-                file,not_created = File.objects.get_or_create(
-                    name=os.path.basename(res),
-                    user=user,
-                    folder=Folder.objects.get(id=folder_id),
-                    size=os.path.getsize(res),
-                    defaults={
-                        "upload":DJFile(f),
-                        "type":mimetypes.guess_type(res)[0]
-                    }
-                )
-                file.save()
+            file,not_created = File.objects.get_or_create(
+                name=os.path.basename(res),
+                user=user,
+                folder=folder,
+                size=os.path.getsize(res),
+                defaults={
+                    "upload":res,
+                    "type":mimetypes.guess_type(res)[0],
+                    "md5":file_md5
+                }
+            )
+            file.save()
             if not_created:
                 user.storage += file.size
                 user.save()
+                # cache.delete(f'{file_md5}_merged') # TODO?
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_201_CREATED)
 

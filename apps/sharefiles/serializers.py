@@ -19,7 +19,7 @@ class FileSerializer(serializers.ModelSerializer):
     # a serializer for the File model
     class Meta:
         model = File
-        fields = '__all__'
+        exclude = ['md5']
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
