@@ -127,6 +127,9 @@ def merge_chunks(md5,folder_name):
             if os.path.exists(destination):
                 destination = os.path.join(MEDIA_ROOT,'uploads',
                             folder_name,random_prefix()+filename)
+            des_dir = os.path.dirname(destination)
+            if not os.path.exists(des_dir):
+                os.makedirs(des_dir)
             with open(destination,'wb')as out:
                 for chunk in sorted((chunk_file_path)):
                     with open(chunk,'rb')as f:
@@ -141,5 +144,6 @@ def merge_chunks(md5,folder_name):
                 return None
             cache.set(f'{md5}_merged',destination)
             return destination
-        except: 
+        except Exception as e:
+            print(e)
             cache.delete(f'{md5}_merged')

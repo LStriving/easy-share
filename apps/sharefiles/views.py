@@ -291,6 +291,11 @@ def chunk_file_upload(request,folder_id):
             file chunk upload (multipart-formdata)
     '''
     form = ChunkFileForm(request.POST,request.FILES)
+    try:
+        Folder.objects.get(id=folder_id)
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,
+                        data={'message':'folder not found'})
     if form.is_valid():
         md5_value = form.cleaned_data['md5']
         index = form.cleaned_data['index']
@@ -315,6 +320,9 @@ def large_file_instance_create(request,folder_id):
     user = request.user
     # data = json.loads(data)
     file_md5 = data.get('md5')
+    if file_md5 is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST,
+                        data={'message':'"md5" field is required in JSON'})
     
     file_merged = cache.get(f'{file_md5}_merged')
     if file_merged is None:
