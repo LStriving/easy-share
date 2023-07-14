@@ -42,7 +42,7 @@ def get_file_status(md5):
         Return:
             - None: not uploaded
             - str: file path, uploaded/merged 
-            - list: uploading
+            - set: uploading
             - True: uploaded but not merged yet
     '''
     total = cache.get(md5)
@@ -133,7 +133,7 @@ def merge_chunks(md5,folder_name):
                         content = f.read()
                         out.write(content)
                     os.remove(chunk)
-            os.remove(chunks_dir)
+            os.rmdir(chunks_dir)
             cache.delete_many([f'file_name_{md5}',f'folder_id_{md5}',f'{md5}_uploaded',md5])
             if md5 != get_file_md5(destination):
                 cache.delete(f'{md5}_merged')

@@ -13,6 +13,7 @@ from .models import Folder, File
 from django.core.files import File as DJFile
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.generic import TemplateView
 
 import os
 
@@ -273,13 +274,13 @@ def large_file_upload_status(request):
         print(f'Celery Task: id({task_id}) started')
         cache.get_or_set(f'{file_md5}_task_id',task_id)
         return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
-    elif isinstance(upload_status,list):
+    elif isinstance(upload_status,set):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
                         data={'message':f'Index {upload_status} are(is) uploaded.'})
     elif isinstance(upload_status,str):
         return Response(data=upload_status,status=status.HTTP_200_OK)
     else:
-        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data='unknown type')
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=f'unknown type:{type(upload_status)}')
     
 
 @api_view(['POST'])
@@ -310,14 +311,15 @@ def large_file_instance_create(request,folder_id):
             create large file database instance (application/json)
     '''
     # Parse json params
-    data = request.body
-    data = json.loads(data)
+    data = request.data
+    user = request.user
+    # data = json.loads(data)
     file_md5 = data.get('md5')
     
     file_merged = cache.get(f'{file_md5}_merged')
     if file_merged is None:
-        return Response(data={'message':f'File chunks not all uploaded,\
-                    you should call /easyshare/chunk/folder/{folder_id} to check upload status'},
+        return Response(data={'message':f'File chunks not all uploaded or Merged,\
+                    you should call /easyshare/large_file_upload_status to check upload status'},
                     status=status.HTTP_303_SEE_OTHER)
     else:
         # check whether the process is truely processing
@@ -335,7 +337,7 @@ def large_file_instance_create(request,folder_id):
             with open(res,'rb')as f:
                 file,not_created = File.objects.get_or_create(
                     name=os.path.basename(res),
-                    user=request.user,
+                    user=user,
                     folder=Folder.objects.get(id=folder_id),
                     size=os.path.getsize(res),
                     defaults={
@@ -345,7 +347,11 @@ def large_file_instance_create(request,folder_id):
                 )
                 file.save()
             if not_created:
-                request.user.storage += file.size
-                request.user.save()
+                user.storage += file.size
+                user.save()
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_201_CREATED)
+
+@permission_classes([permissions.IsAdminUser])
+class LargeFileUploadView(TemplateView):
+    template_name = 'Large_file_upload.html'
