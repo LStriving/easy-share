@@ -1,4 +1,3 @@
-import json
 import mimetypes
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
@@ -10,7 +9,6 @@ from apps.access.utils import *
 from apps.sharefiles.forms import ChunkFileForm
 from apps.sharefiles.utils import *
 from .models import Folder, File
-from django.core.files import File as DJFile
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
