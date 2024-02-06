@@ -4,14 +4,10 @@ version: "3"
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
-      - dbdata:/app/db.sqlite3
-      - sitelog:/app/log
       - media:/app/media
-    ports:
-      - 3344:8000
+      - sitelog:/app/log
     environment:
       - LANGUAGE_CODE=en-us
       - TIME_ZONE=UTC
@@ -19,6 +15,16 @@ services:
       - redis
       - celery
       - celery-beat
+  web_migrate:
+    extends:
+      service: web
+    command: python manage.py collectstatic && python manage.py makemigrations access sharefiles && python manage.py migrate
+  web_run:
+    extends:
+      service: web
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "3344:8000"
   redis:
     image: redis:latest
   celery:
@@ -37,6 +43,5 @@ services:
       - redis
 
 volumes:
-  dbdata:
   sitelog:
   media:
