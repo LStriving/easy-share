@@ -4,11 +4,14 @@ version: "3"
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic && python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
+      - dbdata:/app/db.sqlite3
+      - sitelog:/app/log
+      - media:/app/media
     ports:
-      - 8000:8000
+      - 3344:8000
     environment:
       - LANGUAGE_CODE=en-us
       - TIME_ZONE=UTC
@@ -32,3 +35,8 @@ services:
       - .:/app
     depends_on:
       - redis
+
+volumes:
+  dbdata:
+  sitelog:
+  media:
