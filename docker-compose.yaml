@@ -1,0 +1,34 @@
+# docker-compose.yml
+version: "3"
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    environment:
+      - LANGUAGE_CODE=en-us
+      - TIME_ZONE=UTC
+    depends_on:
+      - redis
+      - celery
+      - celery-beat
+  redis:
+    image: redis:latest
+  celery:
+    build: .
+    command: celery multi start 1 -A EasyShare --logfile=log/celery.log -l info --pidfile=log/%n.pid --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A EasyShare beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
