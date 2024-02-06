@@ -37,7 +37,8 @@ DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['luohailin.cn', 'localhost']
+CSRF_TRUSTED_ORIGINS = ['http://luohailin.cn:4080']
 
 
 # Application definition

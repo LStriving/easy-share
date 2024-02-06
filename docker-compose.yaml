@@ -29,7 +29,7 @@ services:
     image: redis:latest
   celery:
     build: .
-    command: celery multi start 1 -A EasyShare --logfile=log/celery.log -l info --pidfile= --loglevel=info
+    command: celery -A EasyShare worker --logfile=log/celery.log -l info --pidfile= --loglevel=info
     volumes:
       - .:/app
     depends_on:
