@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import re_path as url
 from django.urls import path,include
 from rest_framework_swagger.views import get_swagger_view
+from django.views.static import serve
 
+from EasyShare.settings.base import MEDIA_ROOT    # 导入相关静态文件处理的views控制包
 
 schema_view = get_swagger_view(title='EasyShare API')
 
@@ -27,5 +29,6 @@ urlpatterns = [
     path('easyshare/',include('sharefiles.urls')),
     path("user/", include("access.urls")),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url('media/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
     url(r'^$', schema_view)
 ]
