@@ -164,8 +164,12 @@ class FileDetail(generics.RetrieveUpdateDestroyAPIView):
             file_path = file.upload.path
             md5 = file.md5
             file.delete()
+            # remove small file but not large file
             if md5 is None:
                 os.remove(file_path)
+            else:
+                # make link failed
+                ...
         except FileNotFoundError:
             print(f'Warning: Local file {file.upload.path} remove failed! It may be moved.')
         except ObjectDoesNotExist:
@@ -269,7 +273,11 @@ def large_file_upload_status(request):
         return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
     elif upload_status is True:
         # start to merge if all chunks uploaded
-        folder_name = Folder.objects.get(id=get_folder_id(file_md5)).name
+        folder_id = get_folder_id(file_md5)
+        try:
+            folder_name = Folder.objects.get(id=folder_id).name
+        except Folder.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
         merge_chunks.delay(file_md5,folder_name)
         return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
     elif isinstance(upload_status,set):
@@ -352,7 +360,7 @@ def large_file_instance_create(request,folder_id):
                 folder=folder,
                 size=os.path.getsize(res),
                 defaults={
-                    "upload":res,
+                    "upload": res.split('media')[-1],
                     "type":mimetypes.guess_type(res)[0],
                     "md5":file_md5
                 }
