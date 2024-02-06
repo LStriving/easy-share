@@ -15,6 +15,7 @@ import sys
 import os
 import environ
 from EasyShare.celery import app
+from celery.schedules import crontab
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -171,3 +172,12 @@ EMAIL_CODE_EXPIRED_TIME = 60 * 10 # 10MINS
 MAX_HANDLE_FILE = 50
 
 PER_USER_STORAGE_LIMIT = 1073741824 * 5 # 1GB * 5
+
+# Celery Beat Task Scheduler
+app.conf.beat_schedule = {
+    # Executes every day at 00:00
+    'remove-30days-tmp-file': {
+        'task': 'tasks.remove_tmp',
+        'schedule': crontab(minute=0, hour=0)
+    },
+}

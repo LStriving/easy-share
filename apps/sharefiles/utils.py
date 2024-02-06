@@ -1,7 +1,7 @@
 import os
 import hashlib
 import uuid
-import glob
+import time
 from django.core.cache import cache
 from EasyShare.celery import app
 from EasyShare.settings.base import MEDIA_ROOT
@@ -150,3 +150,25 @@ def merge_chunks(md5,folder_name):
         except Exception as e:
             print(e)
             cache.delete(f'{md5}_merged')
+
+
+@app.task
+def remove_tmp():
+    '''
+    Remove all tmp files which are older than 30 days
+    '''
+    tmp_dir = os.path.join(MEDIA_ROOT, 'tmp')
+    current_time = time.time()
+    thirty_days_ago = current_time - (30 * 24 * 60 * 60)  # 30 days in seconds
+
+    for folder in os.listdir(tmp_dir):
+        folder_path = os.path.join(tmp_dir, folder)
+        if os.path.isdir(folder_path):
+            for file in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file)
+                if os.path.isfile(file_path):
+                    file_mtime = os.path.getmtime(file_path)
+                    if file_mtime < thirty_days_ago:
+                        os.remove(file_path)
+                        # log
+                        print(f"Remove {file_path}")
