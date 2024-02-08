@@ -14,8 +14,8 @@ CACHES = {
 
 # celery configuration
 app.conf.update(
-    broker_url='redis://redis:6379/8',
-    result_backend='redis://redis:6379/9',
+    broker_url='redis://redis:6379/6',
+    result_backend='redis://redis:6379/7',
     timezone='Asia/Shanghai',
     worker_cancel_long_running_tasks_on_connection_loss=True,
     task_acks_late=True,

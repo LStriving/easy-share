@@ -185,6 +185,7 @@
         // open a get request to the given url
         xhr.open("GET", "/easyshare/large_file_upload_status?md5=" + hash);
         xhr.setRequestHeader("Authorization", "Basic " + encoded);
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
         // set the onload callback function
         xhr.onload = function () {
           document.getElementById("status").textContent = xhr.responseText;

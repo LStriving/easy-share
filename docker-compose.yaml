@@ -31,6 +31,7 @@ services:
       - "3344:8000"
   redis:
     image: redis:latest
+    restart: always
   celery:
     build: .
     command: celery -A EasyShare worker --logfile=log/celery.log -l info --pidfile= --loglevel=info
