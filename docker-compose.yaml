@@ -6,8 +6,8 @@ services:
     build: .
     volumes:
       - .:/app
-      - media:/app/media
-      - sitelog:/app/log
+      - ./media:/app/media
+      - ./log:/app/log
     environment:
       - LANGUAGE_CODE=en-us
       - TIME_ZONE=UTC
@@ -50,7 +50,3 @@ services:
       - .:/app
     depends_on:
       - redis
-
-volumes:
-  sitelog:
-  media:
