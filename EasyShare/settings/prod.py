@@ -3,7 +3,7 @@ from .base import *
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','EasyShare.settings.prod')
 
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1','localhost']
 
 DEBUG = False
 
