@@ -35,6 +35,8 @@ services:
   celery:
     build: .
     command: celery -A EasyShare worker --logfile=log/celery.log -l info --pidfile= --loglevel=info
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     volumes:
       - .:/app
     depends_on:
@@ -42,6 +44,8 @@ services:
   celery-beat:
     build: .
     command: celery -A EasyShare beat --loglevel=info
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     volumes:
       - .:/app
     depends_on:
