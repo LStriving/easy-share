@@ -22,6 +22,8 @@ services:
   web_run:
     extends:
       service: web
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "3344:8000"
