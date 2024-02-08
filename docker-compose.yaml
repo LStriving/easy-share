@@ -18,6 +18,8 @@ services:
   web_migrate:
     extends:
       service: web
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     command: bash -c "python manage.py makemigrations access sharefiles && python manage.py migrate"
   web_run:
     extends:
