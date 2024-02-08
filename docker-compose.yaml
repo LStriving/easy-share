@@ -27,6 +27,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     command: python manage.py runserver 0.0.0.0:8000
+    restart: always
     ports:
       - "3344:8000"
   redis:
@@ -41,6 +42,7 @@ services:
       - .:/app
     depends_on:
       - redis
+    restart: always
   celery-beat:
     build: .
     command: celery -A EasyShare beat --loglevel=info
@@ -50,3 +52,4 @@ services:
       - .:/app
     depends_on:
       - redis
+    restart: always

@@ -127,6 +127,7 @@ def merge_chunks(md5,folder_name):
             # start to merge
             destination = os.path.join(MEDIA_ROOT,'uploads',
                             folder_name,filename)
+            # TODO: change to add link count 
             if os.path.exists(destination):
                 destination = os.path.join(MEDIA_ROOT,'uploads',
                             folder_name,random_prefix()+filename)
@@ -135,7 +136,8 @@ def merge_chunks(md5,folder_name):
                 os.makedirs(des_dir)
             print(f"Merging {chunks_dir} into {destination}")
             with open(destination,'wb')as out:
-                for chunk in sorted((chunk_file_path)):
+                for chunk in sorted(chunk_file_path,key=lambda x: int(os.path.basename(x))):
+                    print(f"Merging {chunk}")
                     with open(chunk,'rb')as f:
                         content = f.read()
                         out.write(content)
@@ -145,11 +147,14 @@ def merge_chunks(md5,folder_name):
             if md5 != get_file_md5(destination):
                 cache.delete(f'{md5}_merged')
                 os.remove(destination)
+                print(f"File {destination} is corrupted, remove it")
                 return None
             cache.set(f'{md5}_merged',destination)
             return destination
         except Exception as e:
             print(e)
+            # remove the destination file
+            os.remove(destination)
             cache.delete(f'{md5}_merged')
 
 
