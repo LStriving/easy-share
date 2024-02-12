@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% block content %}
+<div class="testbox">
+  <h1>Intraoperative Navigation </h1>
+      <hr></hr>
+  <h2>Login</h2>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <label id="icon" for="name"><i class="icon-user"></i></label>
+    <input
+      type="text"
+      name="username"
+      id="username"
+      placeholder="Name"
+      required
+    />
+    <label id="icon" for="name"><i class="icon-shield"></i></label>
+    <input
+      type="password"
+      name="password1"
+      id="password1"
+      placeholder="Password"
+      required
+    />
+    <p></p>
+    <button type="submit">Login</button>
+  </form>
+</div>
+
+{% endblock %}

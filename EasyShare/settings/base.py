@@ -121,6 +121,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = '/doc'  # Redirect to the home page after login
+LOGOUT_REDIRECT_URL = '/user/login'  # Redirect to the home page after logout
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
@@ -147,13 +150,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 MEDIA_ROOT = 'media/'
 
 MEDIA_URL = 'media/'
 
 STATIC_ROOT = 'static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'apps/access/static'),
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

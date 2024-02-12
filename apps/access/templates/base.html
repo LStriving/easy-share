@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Intraoperative Navigation{% endblock %}</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'access/css/styles.css' %}" />
+    <link
+      href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <link
+      href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css"
+      rel="stylesheet"
+    />
+    <!-- Add your CSS stylesheets or other head elements here -->
+  </head>
+  <body>
+    <header>
+      <!-- Your header content goes here -->
+    </header>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer>
+      <!-- Your footer content goes here -->
+    </footer>
+
+    <!-- Add your JavaScript files or other scripts here -->
+  </body>
+</html>

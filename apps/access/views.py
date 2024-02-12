@@ -8,6 +8,9 @@ import json
 from .models import User
 from .serializers import *
 from django.contrib.auth import logout
+from django.shortcuts import render, redirect
+from .forms import SignUpForm
+from django.core.mail import send_mail
 
 class UserRegisterAPIView(CreateAPIView):
     """
@@ -121,3 +124,32 @@ def reset_password_with_email(request):
         user.save()
         return Response(status=status.HTTP_200_OK)
     
+@permission_classes([permissions.AllowAny])
+def register_view(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
+            try:
+                send_mail(
+                    'Welcome to EasyShare',
+                    f'Congratulations, {username}!\n' 
+                    'You have successfully registered an account on EasyShare!',
+                    from_email=EMAIL_HOST_USER,
+                    recipient_list=[email],
+                    )
+                form.save()
+            except Exception as e:
+                print(e)
+                return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data={'message':'Email sending failed'})
+            user = User.objects.get(username=username)
+            login(request,user)
+            return redirect('login')
+        else:
+            ...
+    else:
+        print("Not a post request")
+        form = SignUpForm()
+    
+    return render(request, 'register.html', {'form': form})
