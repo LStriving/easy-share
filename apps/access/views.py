@@ -77,7 +77,7 @@ def logout_view(request):
             logout
     '''
     logout(request)
-    return Response(status=status.HTTP_200_OK)
+    return redirect('login')
 
 
 @api_view(['GET'])
