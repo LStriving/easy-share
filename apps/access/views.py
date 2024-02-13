@@ -132,6 +132,16 @@ def register_view(request):
             username = form.cleaned_data.get('username')
             email = form.cleaned_data.get('email')
             try:
+                User.objects.get(email=email)
+                return Response(status=status.HTTP_409_CONFLICT,data={'message':'Email already exists'})
+            except User.DoesNotExist:
+                pass
+            try:
+                User.objects.get(username=username)
+                return Response(status=status.HTTP_409_CONFLICT,data={'message':'Username already exists'})
+            except User.DoesNotExist:
+                pass
+            try:
                 send_mail(
                     'Welcome to EasyShare',
                     f'Congratulations, {username}!\n' 

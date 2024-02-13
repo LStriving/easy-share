@@ -38,19 +38,10 @@
           placeholder="Enter Password Again"
           required
         />
-        {% comment %}
-        <div class="gender">
-          <input type="radio" value="None" id="male" name="gender" checked />
-          <label for="male" class="radio" chec>Male</label>
-          <input type="radio" value="None" id="female" name="gender" />
-          <label for="female" class="radio">Female</label>
-        </div>
-        {% endcomment %}
         <p>
-          By clicking Register, you agree on our
-          <a href="#">terms and condition</a>.
+          Already have an account? <a href="{% url 'login' %}">Login</a> or
         </p>
-        <button type="submit">Register</button>
+        <button type="submit">Sign Up</button>
         <p></p>
       </form>
     </div>

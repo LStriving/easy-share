@@ -30,6 +30,5 @@ urlpatterns = [
     path("user/", include("access.urls")),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url('media/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
-    # path('accounts/', include('django.contrib.auth.urls')),
     url(r'^doc$', schema_view,name='documentation')
 ]
