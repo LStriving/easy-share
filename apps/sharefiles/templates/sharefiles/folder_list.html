@@ -1,0 +1,28 @@
+<!-- templates/folder_list.html -->
+{% extends 'base.html' %} {% block content %} {% load static %}
+<link rel="stylesheet" href="{% static 'sharefiles/css/folder.css' %}" />
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'sharefiles/js/folder.js' %}"></script>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+/>
+
+<h2>Working Folders</h2>
+<ul id="folder-list"></ul>
+<button id="create-folder-btn">Create Folder</button>
+
+<div id="create-folder-modal" style="display: none">
+  <h2>Create Folder</h2>
+  <hr />
+  <div id="create-folder-form">
+    <label for="folder-name">Folder Name </label>
+    <input type="text" id="folder-name" required />
+  </div>
+  <button type="button" id="cancel-folder">Cancel</button>
+  <button id="submit-folder">Create</button>
+</div>
+<div id="pagination-links">
+  <!-- Pagination links will be appended here dynamically -->
+</div>
+{% endblock %}

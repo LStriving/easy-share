@@ -19,6 +19,7 @@ from django.urls import re_path as url
 from django.urls import path,include
 from rest_framework_swagger.views import get_swagger_view
 from django.views.static import serve
+from django.contrib.auth import views as auth_views
 
 from EasyShare.settings.base import MEDIA_ROOT    # 导入相关静态文件处理的views控制包
 
@@ -30,5 +31,6 @@ urlpatterns = [
     path("user/", include("access.urls")),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url('media/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
-    url(r'^doc$', schema_view,name='documentation')
+    url(r'^doc$', schema_view,name='documentation'),
+    path("",auth_views.LoginView.as_view(template_name='./login.html'),name='login')
 ]

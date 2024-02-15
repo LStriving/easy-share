@@ -6,6 +6,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
     # path("", views.index, name="index"),
     path(r"folder/user",views.FolderList.as_view()),
+    path(r"folder/<int:id>",views.FolderInfo.as_view()),
     path(r"folder_detail/<int:folder_id>",views.FolderFiles.as_view(),name='folder_detail'),
     path(r"folder_update/<int:pk>",views.FolderUpdate.as_view(),name='folder_update'),
     path(r"folder_remove/<int:id>",views.FolderDelete.as_view(),name='folder_remove'),
@@ -17,4 +18,7 @@ urlpatterns = [
     path(r'large_file_upload_status',views.large_file_upload_status,name='check_upload_status'),
     path(r'large_file_create/folder_id/<int:folder_id>',views.large_file_instance_create,name='create_large_file_instance'),
     path(r'large_file',views.LargeFileUploadView.as_view()),
+    path(r'upload',views.FileUploadView.as_view()),
+    path(r'folder_list',views.FolderListWebView.as_view()),
+    path(r'file_list/<int:folder_id>',views.FolderDetailView.as_view()),
 ]

@@ -1,4 +1,5 @@
 import mimetypes
+from sqlite3 import IntegrityError
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_list_or_404
@@ -12,6 +13,7 @@ from .models import Folder, File
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
+from django.http import HttpResponseForbidden
 
 import os
 
@@ -49,7 +51,27 @@ class FolderList(generics.ListCreateAPIView):
         return Folder.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
+        # check if the folder name is unique
+        name = serializer.validated_data['name']
+        if Folder.objects.filter(user=self.request.user,name=name).exists():
+            return Response(data={'message':'Folder name should be unique!'},
+                            status=status.HTTP_400_BAD_REQUEST)
         serializer.save(user=self.request.user)
+        
+class FolderInfo(generics.RetrieveAPIView):
+    '''
+        get:
+            Return folder info
+    '''
+    # a view for view folder info
+
+    lookup_field = 'id'
+    serializer_class = FolderSerializer
+    permission_classes = [IsOwner]
+
+    def get_queryset(self):
+        file = self.kwargs['id']
+        return Folder.objects.filter(id=file)
 
 class FolderUpdate(generics.UpdateAPIView):
     """
@@ -373,6 +395,26 @@ def large_file_instance_create(request,folder_id):
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_201_CREATED)
 
-@permission_classes([permissions.IsAdminUser])
 class LargeFileUploadView(TemplateView):
-    template_name = 'Large_file_upload.html'
+    template_name = 'Large_file_upload_demo.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_staff or not request.user.is_superuser:
+            return HttpResponseForbidden("You do not have permission to access this page.")
+        return super().dispatch(request, *args, **kwargs)
+
+class FileUploadView(TemplateView):
+    template_name = 'sharefiles/file_upload.html'
+
+class FolderListWebView(TemplateView):
+    template_name = 'sharefiles/folder_list.html'
+
+class FolderDetailView(TemplateView):
+    model = Folder
+    template_name = 'sharefiles/file_list.html'
+    context_object_name = 'folder'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['folder_id'] = self.kwargs['folder_id']
+        return context

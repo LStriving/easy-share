@@ -1,0 +1,17 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+<link rel="stylesheet" href="{% static 'sharefiles/css/folder.css' %}" />
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'sharefiles/js/view_files.js' %}"></script>
+<script src="{% static 'sharefiles/js/folder.js' %}"></script>
+
+<h2 id="folder-name"></h2>
+<button id="go-back-btn">Back</button>
+<input type="file" id="file-upload" accept="video/*" />
+<ul id="file-list">
+  <!-- Folders will be appended here dynamically -->
+</ul>
+<button id="create-folder-btn">Upload File</button>
+<div id="pagination-links">
+  <!-- Pagination links will be appended here dynamically -->
+</div>
+{% endblock %}

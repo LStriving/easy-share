@@ -1,0 +1,8 @@
+{% extends 'sharefiles/base.html' %} {% block content %}
+<form action="upload.php" method="POST">
+  {% csrf_token %}
+  <input type="file" />
+  <p>Drag your files here or click in this area.</p>
+  <button type="submit">Upload</button>
+</form>
+{% endblock %}

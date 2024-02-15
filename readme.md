@@ -74,7 +74,8 @@ celery -A EasyShare beat
 - [x] Api test by file
 - [x] User System
 - [x] Multiple working envs
-- [ ] Docker Deploy
+- [x] Docker Deploy
 - [ ] Logo url
 - [x] User guidance manual
 - [ ] Large file removal strategy
+- [ ] Fix lacking port for media url when deploying on Docker
