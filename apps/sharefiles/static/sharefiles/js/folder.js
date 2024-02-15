@@ -1,4 +1,3 @@
-// static/js/folder.js
 $(document).ready(function () {
   // Function to get CSRF token from cookies
   function getCSRFToken() {
@@ -16,13 +15,17 @@ $(document).ready(function () {
   // Function to load folders
   function loadFolders(currentPage = 1) {
     $.ajax({
-      url: `/easyshare/folder/user?page=${currentPage}`, // Replace with your actual DRF endpoint
+      url: `/easyshare/folder/user?page=${currentPage}`,
       method: "GET",
       success: function (data) {
         $("#folder-list").empty();
         data.results.forEach(function (folder) {
           $("#folder-list").append(
-            '<div class="folder">' +
+            '<div class="folder" data-folder-id=' +
+              folder.id +
+              " data-folder-name=" +
+              folder.name +
+              ">" +
               `<a href="/easyshare/file_list/${folder.id}">` +
               '<i class="material-icons">folder</i></a><li>' +
               folder.name +
@@ -103,5 +106,78 @@ $(document).ready(function () {
         },
       });
     }
+  });
+
+  const contextMenu = document.querySelector(".wrapper");
+  // Handle right-click events
+  $(document).on("contextmenu", ".folder", function (e) {
+    e.preventDefault();
+    var folder_id = $(this).data("folder-id");
+    var folder_name = $(this).data("folder-name");
+    console.log("Right-clicked on folder name: ", folder_name);
+    showContextMenu(e, folder_id, folder_name);
+  });
+
+  // Close context menu on click outside
+  $(document).on("click", function () {
+    hideContextMenu();
+  });
+  // Context menu functions
+  function showContextMenu(e, folderId, folderName) {
+    let x = e.pageX,
+      y = e.pageY,
+      winWidth = window.innerWidth,
+      winHeight = window.innerHeight,
+      cmWidth = contextMenu.offsetWidth,
+      cmHeight = contextMenu.offsetHeight;
+    x = x > winWidth - cmWidth ? winWidth - cmWidth - 5 : x;
+    y = y > winHeight - cmHeight ? winHeight - cmHeight - 5 : y;
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+    contextMenu.style.visibility = "visible";
+    contextMenu.style.display = "block";
+    // Store the folder id in the context me
+    contextMenu.dataset.folderId = folderId;
+    contextMenu.dataset.folderName = folderName;
+  }
+
+  function hideContextMenu() {
+    contextMenu.style.visibility = "hidden";
+    contextMenu.style.display = "none";
+  }
+
+  $("#delete-folder").on("click", function () {
+    var folderId = contextMenu.dataset.folderId;
+    var folderName = contextMenu.dataset.folderName;
+    console.log("Delete folder with id: ", folderId);
+    // display the confirm dialog
+    const confirmDialog = document.getElementById("confirm-delete");
+    confirmDialog.style.display = "block";
+    const folderNameElement = document.getElementById("delete-folder-name");
+    folderNameElement.innerHTML = folderName;
+
+    $("#confirm-delete-btn").on("click", function () {
+      // Implement the logic to delete the file with fileId
+      $.ajax({
+        url: `/easyshare/folder_remove/${folderId}`,
+        method: "DELETE",
+        beforeSend: function (xhr, settings) {
+          xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+        },
+        success: function () {
+          confirmDialog.style.display = "none";
+          loadFolders(page); // After deletion, reload the files
+        },
+        error: function (error) {
+          console.error(error);
+        },
+      });
+      // After deletion, reload the files
+      loadFolders(page);
+    });
+  });
+
+  $("#cancel-delete").on("click", function () {
+    $("#confirm-delete").hide();
   });
 });

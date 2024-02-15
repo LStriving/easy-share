@@ -239,3 +239,58 @@ a {
     position: relative;
     display: contents;
 }
+
+
+.wrapper{
+  visibility: hidden;
+  position: absolute;
+  width: 160px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.1);
+  transition-duration: 0ms;
+}
+.wrapper .menu{
+  padding: 10px 12px;
+  transition-duration: 0ms;
+}
+.content .item{
+  list-style: none;
+  font-size: 16px;
+  height: 30px;
+  display: flex;
+  width: 100%;
+  cursor: pointer;
+  align-items: center;
+  border-radius: 5px;
+  margin-bottom: 2px;
+  transition-duration: 0ms;
+}
+.content .item:hover{
+  background: #f2f2f2;
+  transition-duration: 0ms;
+}
+.content .item span{
+  margin-left: 4px;
+  font-size: 13px;
+  transition-duration: 0ms;
+}
+
+#confirm-delete p{
+  width: 100%;
+}
+#confirm-delete span{
+  font-weight: bold;
+}
+#confirm-delete button{
+  margin-left: 14%;
+  margin-right: 10%;
+  width: 25%;
+}
+#confirm-delete-btn{
+  background-color: brown;
+  border-color: rgba(206, 55, 31, 0.75);
+  -webkit-box-shadow: 0 3px rgba(206, 55, 31, 0.75);
+  -moz-box-shadow: 0 3px rgba(206, 55, 31, 0.75);
+  box-shadow: 0 3px rgba(206, 55, 31, 0.75);
+}
