@@ -8,6 +8,7 @@ services:
       - .:/app
       - ./media:/app/media
       - ./log:/app/log
+      - ./static:/app/static
     environment:
       - LANGUAGE_CODE=en-us
       - TIME_ZONE=UTC
