@@ -107,7 +107,8 @@ def merge_chunks(md5,folder_name):
     # get locked:
     res = cache.get(f'{md5}_merged')
     if res is False:
-        return 'Task launched in other place, skip...'
+        print('Task launched in other place, skip...')
+        return None
     elif isinstance(res,str):
         return res 
     cache.set(f'{md5}_merged',False)

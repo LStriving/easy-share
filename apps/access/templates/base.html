@@ -18,12 +18,21 @@
       rel="stylesheet"
     />
   </head>
+  <link
+    rel="stylesheet"
+    href="{% static 'sharefiles/css/notification.css' %}"
+  />
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="{% static 'sharefiles/js/notification.js' %}"></script>
   <body>
     <header>
       <!-- Your header content goes here -->
     </header>
 
-    <main>{% block content %}{% endblock %}</main>
+    <main>
+      {% block content %} {% endblock %}
+      <div id="notification-container"></div>
+    </main>
 
     <footer>
       <!-- Your footer content goes here -->

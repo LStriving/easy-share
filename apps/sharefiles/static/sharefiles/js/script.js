@@ -1,3 +1,9 @@
+const CHUNK_FREE = 1;
+const DONE = 2;
+const CHUNK_SIZE = 5;
+const WAIT_MERGE = 3;
+var uploaded_chunks_num = {};
+
 $(document).ready(function () {
   $("form input").change(function () {
     $("form p").text(this.files.length + " file(s) selected");
@@ -73,38 +79,39 @@ function split(file, size) {
 async function send(chunk, index, total, md5, filename, folder_id) {
   // create a FormData object
   var formData = new FormData();
-  // append the chunk as a file field with name "chunk"
   formData.append("chunk", chunk);
-  // append the other fields as text fields with their names and values
   formData.append("index", index);
   formData.append("total", total);
   formData.append("md5", md5);
   formData.append("file_name", filename);
   // create a XMLHttpRequest object
   var xhr = new XMLHttpRequest();
-  var username = "Lstriving";
-  var password = "5201314..Qq";
-  var encoded = window.btoa(username + ":" + password); // dXNlcjpwYXNz
 
   // open a POST request to the given url
   xhr.open("POST", "/easyshare/chunk/folder/" + folder_id);
-  xhr.setRequestHeader("Authorization", "Basic " + encoded);
   xhr.setRequestHeader("X-CSRFToken", csrftoken);
 
   // set the onload callback function
   xhr.onload = function () {
-    // if the status is 200 (OK)
     if (xhr.status == 200) {
-      // log the response text to the console
-      console.log(xhr.responseText);
+      if (uploaded_chunks_num[md5] === undefined) {
+        uploaded_chunks_num[md5] = 1;
+      } else {
+        uploaded_chunks_num[md5] += 1;
+      }
+      updateProgress(
+        ((uploaded_chunks_num[md5] / total) * 100).toFixed(2),
+        md5
+      );
     } else {
       // log an error message to the console
-      console.error("Request failed: " + xhr.status);
+      console.error(
+        "upload chunks failed: " + xhr.status + " " + xhr.responseText
+      );
     }
   };
   // set the onerror callback function
   xhr.onerror = function () {
-    // log an error message to the console
     console.error("Network error");
   };
   // send the request with the form data
@@ -119,114 +126,352 @@ function calculate() {
   var file = input.files[0];
   // if there is no file selected, alert a message and return
   if (!file) {
-    alert("Please select a file");
+    showNotification("error", "Error", "Please select a file");
+    return Promise.reject("No file selected");
+  }
+
+  // return a promise for the asynchronous operations
+  return new Promise((resolve, reject) => {
+    // calculate the md5 hash of the file using the md5File function
+    md5File(file)
+      .then(function (hash) {
+        // display the hash in the span element by id "hash"
+        // document.getElementById("hash").textContent = hash;
+        // split the file into chunks using the split function
+        var chunks = split(file, CHUNK_SIZE);
+        // display the number of chunks in the span element by id "chunks"
+        // document.getElementById("chunks").textContent = chunks.length;
+        // store the chunks, hash, and file name in global variables for later use
+        window.chunks = chunks;
+        window.hash = hash;
+        window.filename = file.name;
+        resolve(hash);
+      })
+      .catch(function (error) {
+        // if there is an error calculating the hash, alert a message and log the error to the console
+        showNotification("error", "Error", "Error calculating MD5 hash");
+        console.error(error);
+        reject(error);
+      });
+  });
+}
+
+function check_upload_status(hash) {
+  return new Promise((resolve, reject) => {
+    // create a XMLHttpRequest object
+    var xhr = new XMLHttpRequest();
+
+    // open a GET request to the given URL
+    xhr.open("GET", "/easyshare/large_file_upload_status?md5=" + hash);
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+    xhr.onreadystatechange = async function () {
+      if (xhr.readyState == 4) {
+        // Check if the request is complete
+        if (xhr.status == 201) {
+          resolve(DONE);
+        } else if (xhr.status == 202) {
+          resolve(WAIT_MERGE);
+        } else if (xhr.status == 200) {
+          await mergeChunks(hash);
+          resolve(DONE);
+        } else if (xhr.status == 500 || xhr.status == 503) {
+          showNotification("error", "Server error", "Please try again later");
+          reject(new Error("Server error"));
+        } else if (xhr.status == 206) {
+          // parse the response for uploaded chunks
+          var response = JSON.parse(xhr.responseText);
+          var uploaded = response.message;
+          var uploaded_chunks = uploaded
+            .split("Index")[1]
+            .split("are")[0]
+            .split("{")[1]
+            .split("}")[0];
+          var uploaded_chunks = uploaded_chunks.split(",");
+          uploaded_chunks = uploaded_chunks.map((x) => parseInt(x));
+          console.log("uploaded_chunks", uploaded_chunks);
+          resolve(uploaded_chunks);
+        } else if (xhr.status == 404) {
+          resolve(null);
+        } else {
+          // log an error message to the console
+          console.log("Request failed: " + xhr.status);
+          console.log(xhr.responseText);
+          reject(new Error("Request failed: " + xhr.status));
+        }
+      }
+    };
+
+    // set the onload callback function
+    xhr.onload = function () {
+      document.getElementById("loading-msg").textContent = xhr.responseText;
+    };
+
+    // set the onerror callback function
+    xhr.onerror = function () {
+      // log an error message to the console
+      console.error("Network error");
+      reject(new Error("Network error"));
+    };
+
+    // send the request with the form data
+    try {
+      xhr.send();
+      return xhr.status;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  });
+}
+
+function mergeChunks(hash) {
+  return new Promise((resolve, reject) => {
+    //send a request to merge the chunks when the upload is complete
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "/easyshare/merge_chunks?md5=" + hash);
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    xhr.onload = function () {
+      if (xhr.status == 200) {
+        console.log("Chunks merged successfully");
+        resolve();
+      } else {
+        console.error("Chunks merged failed");
+        reject(new Error("Chunks merged failed"));
+      }
+    };
+    xhr.onerror = function () {
+      console.error("Network error");
+      reject(new Error("Network error"));
+    };
+    xhr.send();
+  });
+}
+
+function create_file_instance(hash) {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    var folder_id = window.location.pathname.split("/").pop();
+
+    xhr.open("POST", "/easyshare/large_file_create/folder_id/" + folder_id);
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    xhr.onload = function () {
+      if (xhr.status == 200) {
+        document.getElementById("loading-msg").textContent = "Create success!";
+        resolve(DONE);
+      } else if (xhr.status == 201) {
+        document.getElementById("loading-msg").textContent = "Already created!";
+        resolve(DONE);
+      } else if (xhr.status == 500 || xhr.status == 503) {
+        showNotification(
+          "error",
+          "Server error",
+          "Server error, please try again later"
+        );
+        reject(new Error("Server error"));
+      } else if (xhr.status == 303) {
+        showNotification("error", "Error", "Chunks merged failed");
+        resolve(null);
+      } else {
+        document.getElementById("loading-msg").textContent = xhr.responseText;
+        showNotification("error", "Error", xhr.responseText);
+        reject(new Error(xhr.responseText));
+      }
+    };
+
+    xhr.onerror = function () {
+      console.error("Network error");
+      reject(new Error("Network error"));
+    };
+
+    xhr.send(JSON.stringify({ md5: hash }));
+  });
+}
+
+$(document).ready(function () {
+  $("#upload-file input").change(function () {
+    $("#upload-file p").text(this.files.length + " file(s) selected");
+  });
+});
+
+function updateProgress(percentage, md5) {
+  document.getElementById("progress-data-" + md5).innerHTML = percentage + "%";
+  document.getElementById("progress-data-" + md5).style.width =
+    percentage + "%";
+}
+
+// Configure XMLHttpRequest for progress tracking
+async function handleUpload() {
+  // get the input element by id "file"
+  var input = document.getElementById("file");
+  // get the first file from the input element's files property
+  var file = input.files[0];
+  // if there is no file selected, alert a message and return
+  if (!file) {
+    showNotification("error", "Error", "Please select a file");
     return;
   }
-  // get the chunk size from the input element by id "size"
-  var size = document.getElementById("size").value;
-  // parse the size as an integer and validate it, alert a message and return if invalid
-  size = parseInt(size);
-  if (isNaN(size) || size <= 0) {
-    alert("Please enter a valid chunk size");
-    return;
-  }
-  // calculate the md5 hash of the file using the md5 function
-  md5File(file)
-    .then(function (hash) {
-      // display the hash in the span element by id "hash"
-      document.getElementById("hash").textContent = hash;
-      // split the file into chunks using the split function
-      var chunks = split(file, size);
-      // display the number of chunks in the span element by id "chunks"
-      document.getElementById("chunks").textContent = chunks.length;
-      // store the chunks, hash and file name in global variables for later use
-      window.chunks = chunks;
-      window.hash = hash;
-      window.filename = file.name;
+  //unblur_preloader the background
+  document.getElementById("upload-file").style.display = "none";
+  $("body div:not(#upload-file)").css("filter", "blur(0px)");
+
+  // get folder id from the url
+  let folder_id = window.location.pathname.split("/").pop();
+
+  // display the preparing message
+  $("body div:not(#preloader)").css("filter", "blur(5px)");
+  document.getElementById("spinner").style.filter = "blur(0px)";
+  document.getElementById("preloader").style.display = "block";
+  document.getElementById("loading-msg").textContent = "Preparing Upload";
+
+  calculate()
+    .then(async (md5_value) => {
+      document.getElementById("loading-msg").textContent =
+        "Calculated MD5 hash";
+      // display progress bar
+      await insertUploadFileDiv(md5_value, file.name);
+      // Successfully calculated MD5 hash, proceed with the next steps
+      console.log("MD5 hash calculated:", md5_value);
+      $("upload-file-name").textContent = file.name;
+      const current_status = await check_upload_status(md5_value);
+
+      if (current_status === DONE) {
+        const status = await create_file_instance(md5_value);
+        if (status === DONE) {
+          document.getElementById("loading-msg").textContent =
+            "file instance created";
+          // show success message
+          showNotification("success", "Success!", "Upload Success!");
+          // reload the page
+          location.reload();
+        } else {
+          document.getElementById("loading-msg").textContent =
+            "File instance creation failed";
+        }
+        // endProgressBar(md5_value);
+        unblur_preloader();
+        document.getElementById("preloader").style.display = "none";
+      } else if (current_status == WAIT_MERGE) {
+        // send merge request time to time
+        showNotification(
+          "warning",
+          "Message",
+          "Merging chunks, please refresh the page later"
+        );
+      } else {
+        document.getElementById("preloader").style.display = "none";
+        $("body div:not(#preloader)").css("filter", "blur(0px)");
+        showNotification("info", "Info", "Start uploading");
+        let uploaded_chunks = [];
+        if (current_status != null) {
+          uploaded_chunks = current_status;
+        }
+        uploaded_chunks_num[md5_value] = uploaded_chunks.length;
+
+        // split the file into chunks using the split function
+        let chunks = split(file, CHUNK_SIZE);
+
+        // loop through the chunks
+        for (var i = 0; i < chunks.length; i++) {
+          if (uploaded_chunks.includes(i + 1)) {
+            console.log("chunk " + (i + 1) + " already uploaded");
+            continue;
+          }
+
+          var chunk = chunks[i];
+          var index = i + 1;
+
+          await send(
+            chunk,
+            index,
+            chunks.length,
+            md5_value,
+            file.name,
+            folder_id
+          );
+        }
+        await mergeChunks(md5_value);
+        const new_status = await check_upload_status(md5_value);
+        if (new_status == DONE) {
+          console.log("file instance created");
+          // show success message
+          showNotification("success", "Success!", "Upload Success!");
+          // reload the page
+          location.reload();
+        } else if (new_status) {
+          console.log("file instance creation failed");
+          // show fail message
+          showNotification(
+            "error",
+            "Failed!",
+            "Upload success but create instance failed, please try again later."
+          );
+        }
+      }
     })
-    .catch(function (error) {
-      // if there is an error calculating the hash, alert a message and log the error to the console
-      alert("Error calculating md5 hash");
-      console.error(error);
+    .catch((error) => {
+      $("body div:not(#preloader)").css("filter", "blur(0px)");
+      document.getElementById("preloader").style.display = "none";
+      showNotification(
+        "error",
+        "Error",
+        "Upload failed, please try again later" + error
+      );
+      // Handle errors during MD5 calculation
+      console.error("Error during MD5 calculation:", error);
+    })
+    .finally(() => {
+      endProgressBar(md5_value);
     });
 }
 
-// function to handle the click event of the send button
-async function sendAll() {
-  // get the global variables for the chunks, hash and file name
-  var chunks = window.chunks;
-  var hash = window.hash;
-  var filename = window.filename;
-  // get the chunk size from the input element by id "size"
-  var folder_id = document.getElementById("folder_id").value;
-  // if any of them is undefined, alert a message and return
-  if (!chunks || !hash || !filename) {
-    alert("Please calculate first");
+function unblur_preloader() {
+  $("body div:not(#preloader)").css("filter", "blur(0px)");
+}
+
+function insertUploadFileDiv(md5, filename) {
+  if (document.getElementById(`progress-data-${md5}`)) {
     return;
   }
-  // loop through the chunks
-  for (var i = 0; i < chunks.length; i++) {
-    // get the current chunk and its index
-    var chunk = chunks[i];
-    var index = i + 1;
-    // send the chunk and other fields using the send function
-    await send(chunk, index, chunks.length, hash, filename, folder_id);
+  var uploadWrapper = document.getElementById("upload-wrapper");
+
+  // Check if the element is found before proceeding
+  if (uploadWrapper) {
+    // Define the HTML code you want to insert
+    var newHtmlCode =
+      `<div class="uploaded" id=${md5}>` +
+      '<i class="material-icons" id="upload-icon">video_file</i>' +
+      '<div class="file">' +
+      '<div class="file__name">' +
+      `<p>${filename}</p>` +
+      '<i class="fas fa-times"></i>' +
+      "</div>" +
+      '<div class="w3-light-grey w3-round" id="bar">' +
+      `<div class="w3-container w3-round w3-green" style="width: 0%" id="progress-data-${md5}">` +
+      "0%" +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      "</div>";
+
+    // Insert the new HTML code into the #upload-wrapper element
+    uploadWrapper.innerHTML += newHtmlCode;
+  } else {
+    console.error("#upload-wrapper element not found");
   }
 }
 
-function check_upload_status() {
-  var hash = window.hash;
-  // create a XMLHttpRequest object
-  var xhr = new XMLHttpRequest();
-  var username = "Lstriving";
-  var password = "5201314..Qq";
-  var encoded = window.btoa(username + ":" + password); // dXNlcjpwYXNz
-
-  // open a get request to the given url
-  xhr.open("GET", "/easyshare/large_file_upload_status?md5=" + hash);
-  xhr.setRequestHeader("Authorization", "Basic " + encoded);
-  xhr.setRequestHeader("X-CSRFToken", csrftoken);
-  // set the onload callback function
-  xhr.onload = function () {
-    document.getElementById("status").textContent = xhr.responseText;
-  };
-  // set the onerror callback function
-  xhr.onerror = function () {
-    // log an error message to the console
-    console.error("Network error");
-  };
-  // send the request with the form data
-  xhr.send();
+function removeEleNChildren(ele) {
+  //remove the element and all its children
+  var element = document.getElementById(ele);
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
+  }
+  element.remove();
 }
-function create_file_instance() {
-  // create a XMLHttpRequest object
-  var xhr = new XMLHttpRequest();
-  var username = "Lstriving";
-  var password = "5201314..Qq";
-  var encoded = window.btoa(username + ":" + password); // dXNlcjpwYXNz
-  // var folder_id = document.getElementById("folder_id").value;
-  var folder_id = 2;
-  // open a get request to the given url
-  xhr.open("POST", "/easyshare/large_file_create/folder_id/" + folder_id);
-  xhr.setRequestHeader("Authorization", "Basic " + encoded);
-  xhr.setRequestHeader("X-CSRFToken", csrftoken);
-  xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.send(JSON.stringify({ md5: window.hash }));
-  // set the onload callback function
-  xhr.onload = function () {
-    if (xhr.status == 200) {
-      // log the response text to the console
-      document.getElementById("status").textContent = "Create success!";
-    } else if (xhr.status == 201) {
-      document.getElementById("status").textContent = "Already created!";
-    } else {
-      document.getElementById("status").textContent = xhr.responseText;
-    }
-  };
-  // set the onerror callback function
-  xhr.onerror = function () {
-    // log an error message to the console
-    console.error("Network error");
-  };
-  // send the request with the form data
+
+function endProgressBar(md5) {
+  removeEleNChildren(md5);
 }

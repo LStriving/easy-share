@@ -5,12 +5,17 @@ from rest_framework.generics import CreateAPIView,RetrieveUpdateAPIView
 from django.contrib.auth import authenticate,login
 from apps.access.utils import *
 import json
+
 from .models import User
 from .serializers import *
 from django.contrib.auth import logout
 from django.shortcuts import render, redirect
 from .forms import SignUpForm
 from django.core.mail import send_mail
+from django.contrib.auth.signals import user_login_failed
+from django.dispatch import receiver
+from django.contrib import messages
+from django.contrib.auth.views import LoginView
 
 class UserRegisterAPIView(CreateAPIView):
     """
@@ -43,6 +48,16 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsSelf]
 
+# TODO: not working
+class CustomLoginView(LoginView):
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, 'Login successful.')
+        return response
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Login failed. Please check your credentials.', extra_tags='login_failed')
+        return super().redender_to_response(self.get_context_data(form=form),messages=messages)
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])

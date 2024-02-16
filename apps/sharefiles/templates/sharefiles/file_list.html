@@ -1,16 +1,50 @@
 {% extends 'base.html' %} {% block content %} {% load static %}
 <link rel="stylesheet" href="{% static 'sharefiles/css/folder.css' %}" />
+<link rel="stylesheet" href="{% static 'sharefiles/css/styles.css' %}" />
+<link rel="stylesheet" href="{% static 'sharefiles/css/spinner.css' %}" />
+<link rel="stylesheet" href="{% static 'sharefiles/css/progress.css' %}" />
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="{% static 'sharefiles/js/view_files.js' %}"></script>
-<script src="{% static 'sharefiles/js/folder.js' %}"></script>
+<script src="{% static 'sharefiles/js/md5.js' %}"></script>
+<link
+  rel="stylesheet"
+  href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+  integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+  crossorigin="anonymous"
+/>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
 
-<h2 id="folder-name"></h2>
+{% comment %}
+<script src="{% static 'sharefiles/js/folder.js' %}"></script>
+{% endcomment %}
+<script src="{% static 'sharefiles/js/script.js' %}"></script>
+
+<h2 id="folder-name"><span></span></h2>
 <button id="go-back-btn">Back</button>
-<input type="file" id="file-upload" accept="video/*" />
+<button id="upload-btn">Upload</button>
+{% comment %} upload file button {% endcomment %}
+<div id="upload-file">
+  <input type="file" id="file" />
+  <p>Drag your files here or click in this area.</p>
+  <button type="submit" id="cancel-upload-btn">Cancel</button>
+  <button type="submit" onclick="handleUpload()" id="confirm-upload-btn">
+    Upload
+  </button>
+</div>
+{% comment %} preloader {% endcomment %}
+<div id="preloader">
+  <div id="spinner"></div>
+  <span id="loading-msg"></span>
+</div>
+{% comment %} upload progress bar {% endcomment %}
+<div id="FileUpload">
+  <div id="upload-wrapper"></div>
+</div>
+{% comment %} main element {% endcomment %}
 <ul id="file-list">
   <!-- Folders will be appended here dynamically -->
 </ul>
-<button id="create-folder-btn">Upload File</button>
+{% comment %} pagination {% endcomment %}
 <div id="pagination-links">
   <!-- Pagination links will be appended here dynamically -->
 </div>

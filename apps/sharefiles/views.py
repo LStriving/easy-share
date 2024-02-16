@@ -2,7 +2,7 @@ import mimetypes
 from sqlite3 import IntegrityError
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_list_or_404, render
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from EasyShare.settings.base import MAX_HANDLE_FILE
@@ -14,6 +14,7 @@ from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
 from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
 
 import os
 
@@ -290,23 +291,31 @@ def large_file_upload_status(request):
         file_md5 = request.GET['md5']
     except KeyError:
         return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"md5" field is required'})
-    upload_status = get_file_status(file_md5)
+    try:
+        upload_status = get_file_status(file_md5)
+    except redis.exceptions.ConnectionError:
+        return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        data={'message':'Redis server not available'})
     if upload_status is None:
         return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
     elif upload_status is True:
         # start to merge if all chunks uploaded
-        folder_id = get_folder_id(file_md5)
+        try:
+            folder_id = get_folder_id(file_md5)
+        except redis.exceptions.ConnectionError:
+            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        data={'message':'Redis server not available'})
         try:
             folder_name = Folder.objects.get(id=folder_id).name
         except Folder.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
-        merge_chunks.delay(file_md5,folder_name)
-        return Response(status=status.HTTP_201_CREATED,data={'message':'All chunks uploaded'})
+        # merge_chunks.delay(file_md5,folder_name)
+        return Response(status=status.HTTP_200_OK,data={'message':'All chunks uploaded'})
     elif isinstance(upload_status,set):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
                         data={'message':f'Index {upload_status} are(is) uploaded.'})
     elif isinstance(upload_status,str):
-        return Response(data=upload_status,status=status.HTTP_200_OK)
+        return Response(data=upload_status,status=status.HTTP_201_CREATED)
     else:
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=f'unknown type:{type(upload_status)}')
     
@@ -329,7 +338,11 @@ def chunk_file_upload(request,folder_id):
         index = form.cleaned_data['index']
         total = form.cleaned_data['total']
         file_name = form.cleaned_data['file_name']
-        set_chunk_meta_cache(md5_value,index,total,file_name,folder_id)
+        try:
+            set_chunk_meta_cache(md5_value,index,total,file_name,folder_id)
+        except redis.exceptions.ConnectionError:
+            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            data={'message':'Redis server not available'})
         handle_uploaded_chunk(request.FILES["chunk"],md5_value,index)
         return Response(status=status.HTTP_200_OK)
     else:
@@ -357,8 +370,11 @@ def large_file_instance_create(request,folder_id):
     except Folder.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND,
                         data={'message':"folder not found"})
-
-    file_merged = cache.get(f'{file_md5}_merged')
+    try:
+        file_merged = cache.get(f'{file_md5}_merged')
+    except redis.exceptions.ConnectionError:
+        return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        data={'message':'Redis server not available'})
     if file_merged is None:
         return Response(data={'message':f'File chunks not all uploaded or Merged,\
                     you should call /easyshare/large_file_upload_status to check upload status'},
@@ -395,13 +411,36 @@ def large_file_instance_create(request,folder_id):
                 return Response(status=status.HTTP_200_OK)
             return Response(status=status.HTTP_201_CREATED)
 
-class LargeFileUploadView(TemplateView):
-    template_name = 'Large_file_upload_demo.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or not request.user.is_staff or not request.user.is_superuser:
-            return HttpResponseForbidden("You do not have permission to access this page.")
-        return super().dispatch(request, *args, **kwargs)
+@api_view(["GET"])
+@permission_classes([IsFolderOwnerOrAdmin])
+def merge_upload_chunks(request):
+    try:
+        file_md5 = request.GET['md5']
+    except KeyError:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"md5" field is required'})
+    try:
+        folder_id = get_folder_id(file_md5)
+    except redis.exceptions.ConnectionError:
+        return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    data={'message':'Redis server not available'})
+    try:
+        folder_name = Folder.objects.get(id=folder_id).name
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
+    try:
+        upload_status = get_file_status(file_md5)
+    except redis.exceptions.ConnectionError:
+        return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        data={'message':'Redis server not available'})
+    if upload_status is str:
+        return Response(data=upload_status,status=status.HTTP_200_OK)
+    try:
+        des = merge_chunks(file_md5,folder_name)
+        if des is None:
+            return Response(status=status.HTTP_202_ACCEPTED)
+        return Response(status=status.HTTP_200_OK,data=des)
+    except Exception as e:
+        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
 
 class FileUploadView(TemplateView):
     template_name = 'sharefiles/file_upload.html'

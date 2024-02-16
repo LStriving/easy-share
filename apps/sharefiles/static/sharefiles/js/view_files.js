@@ -33,19 +33,18 @@ $(document).ready(function () {
           );
         });
         // Display pagination links
-        displayPagination(data, page);
+        displayPagination(data, folderId, page);
       },
       error: function (error) {
         console.error(error);
       },
     });
   }
-  function displayPagination(data, currentPage) {
+  function displayPagination(data, folderId, currentPage) {
     var totalPages = parseInt(data.count / 10);
     if (data.count % 10) {
       totalPages += 1;
     }
-    console.log(totalPages, currentPage);
     $("#pagination-links").empty();
     if (currentPage < totalPages) {
       $("#pagination-links").append(
@@ -65,7 +64,7 @@ $(document).ready(function () {
     // Handle pagination link clicks
     $(".pagination-link").on("click", function (e) {
       e.preventDefault();
-      var nextPage = $(this).data("page");
+      var nextPage = $(this).attr("page");
       loadFiles(folderId, parseInt(nextPage));
     });
   }
@@ -82,29 +81,17 @@ $(document).ready(function () {
   });
 
   // Upload new file on button click
-  $("#upload-file-btn").on("click", function () {
-    var fileInput = document.getElementById("file-upload");
-    var file = fileInput.files[0];
-    if (file) {
-      var formData = new FormData();
-      formData.append("file", file);
+  $("#upload-btn").on("click", function () {
+    // display the #upload-file div
+    document.getElementById("upload-file").style.display = "block";
+    //blur the website except the upload file div
+    $("body div:not(#upload-file)").css("filter", "blur(6px)");
+  });
 
-      $.ajax({
-        url: `/api/files/?folder=${folderId}`,
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        beforeSend: function (xhr, settings) {
-          xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
-        },
-        success: function () {
-          loadFiles(folderId, page); // Reload files after upload
-        },
-        error: function (error) {
-          console.error(error);
-        },
-      });
-    }
+  // Cancel upload on button click
+  $("#cancel-upload-btn").on("click", function () {
+    // hide the #upload-file div
+    document.getElementById("upload-file").style.display = "none";
+    $("body div:not(#upload-file)").css("filter", "blur(0px)");
   });
 });

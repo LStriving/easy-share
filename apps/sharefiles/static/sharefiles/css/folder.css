@@ -239,7 +239,12 @@ a {
     position: relative;
     display: contents;
 }
-
+ul#folder-list {
+  margin-top: 50px;
+}
+ul#file-list {
+  margin-top: 50px;
+}
 
 .wrapper{
   visibility: hidden;

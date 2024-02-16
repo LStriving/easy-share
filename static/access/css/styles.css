@@ -34,6 +34,7 @@ ol,
 ul,
 li {
   list-style: none;
+  overflow:hidden;
 }
 
 :focus {
@@ -101,6 +102,11 @@ input[type="radio"] {
 
 form {
   margin: 0 30px;
+}
+
+form p{
+  /*  */
+  margin: 10px 20px;
 }
 
 label.radio {
@@ -202,7 +208,6 @@ button {
   color: white;
   margin: 10px 8px 20px 0px;
   display: inline-block;
-  float: right;
   text-decoration: none;
   height: 27px;
   -webkit-border-radius: 5px;

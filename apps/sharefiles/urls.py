@@ -17,8 +17,8 @@ urlpatterns = [
     path(r'chunk/folder/<int:folder_id>',views.chunk_file_upload,name='upload_chunk'),
     path(r'large_file_upload_status',views.large_file_upload_status,name='check_upload_status'),
     path(r'large_file_create/folder_id/<int:folder_id>',views.large_file_instance_create,name='create_large_file_instance'),
-    path(r'large_file',views.LargeFileUploadView.as_view()),
     path(r'upload',views.FileUploadView.as_view()),
     path(r'folder_list',views.FolderListWebView.as_view()),
     path(r'file_list/<int:folder_id>',views.FolderDetailView.as_view()),
+    path(r'merge_chunks',views.merge_upload_chunks,name='merge_chunks'),
 ]
