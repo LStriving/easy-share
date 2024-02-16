@@ -167,29 +167,25 @@ function check_upload_status(hash) {
 
     xhr.onreadystatechange = async function () {
       if (xhr.readyState == 4) {
-        // Check if the request is complete
         if (xhr.status == 201) {
           resolve(DONE);
         } else if (xhr.status == 202) {
           resolve(WAIT_MERGE);
         } else if (xhr.status == 200) {
-          await mergeChunks(hash);
-          resolve(DONE);
+          const merge_status = await mergeChunks(hash);
+          if (merge_status === DONE) {
+            resolve(DONE);
+          } else if (merge_status === WAIT_MERGE) {
+            resolve(WAIT_MERGE);
+          } else {
+            resolve(parsePartialResponse(merge_status));
+          }
         } else if (xhr.status == 500 || xhr.status == 503) {
           showNotification("error", "Server error", "Please try again later");
           reject(new Error("Server error"));
         } else if (xhr.status == 206) {
           // parse the response for uploaded chunks
-          var response = JSON.parse(xhr.responseText);
-          var uploaded = response.message;
-          var uploaded_chunks = uploaded
-            .split("Index")[1]
-            .split("are")[0]
-            .split("{")[1]
-            .split("}")[0];
-          var uploaded_chunks = uploaded_chunks.split(",");
-          uploaded_chunks = uploaded_chunks.map((x) => parseInt(x));
-          console.log("uploaded_chunks", uploaded_chunks);
+          var uploaded_chunks = parsePartialResponse(xhr.responseText);
           resolve(uploaded_chunks);
         } else if (xhr.status == 404) {
           resolve(null);
@@ -225,6 +221,19 @@ function check_upload_status(hash) {
   });
 }
 
+function parsePartialResponse(responseText) {
+  var response = JSON.parse(responseText);
+  var uploaded = response.message;
+  var uploaded_chunks = uploaded
+    .split("Index")[1]
+    .split("are")[0]
+    .split("{")[1]
+    .split("}")[0];
+  var uploaded_chunks = uploaded_chunks.split(",");
+  uploaded_chunks = uploaded_chunks.map((x) => parseInt(x));
+  return uploaded_chunks;
+}
+
 function mergeChunks(hash) {
   return new Promise((resolve, reject) => {
     //send a request to merge the chunks when the upload is complete
@@ -234,7 +243,13 @@ function mergeChunks(hash) {
     xhr.onload = function () {
       if (xhr.status == 200) {
         console.log("Chunks merged successfully");
-        resolve();
+        resolve(DONE);
+      } else if (xhr.status == 202) {
+        console.log("Chunks are merging");
+        resolve(WAIT_MERGE);
+      } else if (xhr.status == 206) {
+        console.log(xhr.responseText);
+        resolve(xhr.responseText);
       } else {
         console.error("Chunks merged failed");
         reject(new Error("Chunks merged failed"));
@@ -297,6 +312,7 @@ $(document).ready(function () {
 });
 
 function updateProgress(percentage, md5) {
+  percentage = Math.max(percentage, 100);
   document.getElementById("progress-data-" + md5).innerHTML = percentage + "%";
   document.getElementById("progress-data-" + md5).style.width =
     percentage + "%";
@@ -335,36 +351,16 @@ async function handleUpload() {
       // Successfully calculated MD5 hash, proceed with the next steps
       console.log("MD5 hash calculated:", md5_value);
       $("upload-file-name").textContent = file.name;
-      const current_status = await check_upload_status(md5_value);
+      var current_status = await check_upload_status(md5_value);
 
-      if (current_status === DONE) {
-        const status = await create_file_instance(md5_value);
-        if (status === DONE) {
-          document.getElementById("loading-msg").textContent =
-            "file instance created";
-          // show success message
-          showNotification("success", "Success!", "Upload Success!");
-          // reload the page
-          location.reload();
-        } else {
-          document.getElementById("loading-msg").textContent =
-            "File instance creation failed";
-        }
-        // endProgressBar(md5_value);
-        unblur_preloader();
-        document.getElementById("preloader").style.display = "none";
-      } else if (current_status == WAIT_MERGE) {
-        // send merge request time to time
-        showNotification(
-          "warning",
-          "Message",
-          "Merging chunks, please refresh the page later"
-        );
-      } else {
-        document.getElementById("preloader").style.display = "none";
-        $("body div:not(#preloader)").css("filter", "blur(0px)");
-        showNotification("info", "Info", "Start uploading");
-        let uploaded_chunks = [];
+      document.getElementById("preloader").style.display = "none";
+      $("body div:not(#preloader)").css("filter", "blur(0px)");
+      showNotification("info", "Info", "Start uploading");
+      // partially uploaded
+      let uploaded_chunks = [];
+      var result = null;
+      while (current_status !== DONE && current_status !== WAIT_MERGE) {
+        uploaded_chunks = [];
         if (current_status != null) {
           uploaded_chunks = current_status;
         }
@@ -392,24 +388,46 @@ async function handleUpload() {
             folder_id
           );
         }
-        await mergeChunks(md5_value);
-        const new_status = await check_upload_status(md5_value);
-        if (new_status == DONE) {
-          console.log("file instance created");
+        result = await mergeChunks(md5_value);
+        if (result !== DONE && result !== WAIT_MERGE) {
+          // partially uploaded
+          continue;
+        }
+        if (result === DONE) {
+          current_status = DONE;
+        }
+
+        current_status = await check_upload_status(md5_value);
+      }
+
+      if (current_status === DONE) {
+        const status = await create_file_instance(md5_value);
+        if (status === DONE) {
+          updateProgress(100, md5_value);
+          document.getElementById("loading-msg").textContent =
+            "file instance created";
           // show success message
           showNotification("success", "Success!", "Upload Success!");
           // reload the page
           location.reload();
-        } else if (new_status) {
-          console.log("file instance creation failed");
-          // show fail message
-          showNotification(
-            "error",
-            "Failed!",
-            "Upload success but create instance failed, please try again later."
-          );
+        } else {
+          document.getElementById("loading-msg").textContent =
+            "File instance creation failed";
         }
+        // endProgressBar(md5_value);
+        unblur_preloader();
+        document.getElementById("preloader").style.display = "none";
+      } else if (current_status == WAIT_MERGE) {
+        // send merge request time to time
+        showNotification(
+          "warning",
+          "Message",
+          "Merging chunks, please refresh the page later"
+        );
+      } else {
+        console.error("Unknown error, please try again later.");
       }
+      endProgressBar(md5_value);
     })
     .catch((error) => {
       $("body div:not(#preloader)").css("filter", "blur(0px)");
@@ -421,9 +439,6 @@ async function handleUpload() {
       );
       // Handle errors during MD5 calculation
       console.error("Error during MD5 calculation:", error);
-    })
-    .finally(() => {
-      endProgressBar(md5_value);
     });
 }
 

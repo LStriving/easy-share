@@ -46,18 +46,18 @@ $(document).ready(function () {
       totalPages += 1;
     }
     $("#pagination-links").empty();
-    if (currentPage < totalPages) {
-      $("#pagination-links").append(
-        '<a href="?" class="pagination-link" page="' +
-          (currentPage + 1) +
-          '">Next</a>'
-      );
-    }
     if (currentPage > 1) {
       $("#pagination-links").append(
         '<a href="?" class="pagination-link" page="' +
           (currentPage - 1) +
           '">Previous</a>'
+      );
+    }
+    if (currentPage < totalPages) {
+      $("#pagination-links").append(
+        '<a href="?" class="pagination-link" page="' +
+          (currentPage + 1) +
+          '">Next</a>'
       );
     }
 
@@ -84,6 +84,8 @@ $(document).ready(function () {
   $("#upload-btn").on("click", function () {
     // display the #upload-file div
     document.getElementById("upload-file").style.display = "block";
+    // place the z-index of the #upload-file div above all other divs and elements
+    document.getElementById("upload-file").style.zIndex = "100";
     //blur the website except the upload file div
     $("body div:not(#upload-file)").css("filter", "blur(6px)");
   });

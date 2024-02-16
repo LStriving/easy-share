@@ -2,9 +2,11 @@ import os
 import hashlib
 import uuid
 import time
+import redis
 from django.core.cache import cache
 from EasyShare.celery import app
 from EasyShare.settings.base import MEDIA_ROOT
+from .redis_pool import POOL
 
 # TODO: needs to check
 def file_same_or_not(path1,path2):
@@ -61,15 +63,17 @@ def get_folder_id(md5):
     return cache.get(f'folder_id_{md5}')
 
 def set_chunk_meta_cache(md5_value,index,total,file_name,folder_id):
-    if cache.get(md5_value) is None:
-        cache.set(md5_value,total)
-        cache.set(f'{md5_value}_uploaded',set([index]))
-        cache.set(f'file_name_{md5_value}',file_name)
-        cache.set(f'folder_id_{md5_value}',folder_id)
-    else:
-        indices = cache.get(f'{md5_value}_uploaded')
-        indices.add(index)
-        cache.set(f'{md5_value}_uploaded',indices)
+    conn = redis.Redis(connection_pool=POOL)
+    with conn.lock(f'{md5_value}_lock'):
+        if cache.get(md5_value) is None:
+            cache.set(md5_value,total)
+            cache.set(f'{md5_value}_uploaded',set([index]))
+            cache.set(f'file_name_{md5_value}',file_name)
+            cache.set(f'folder_id_{md5_value}',folder_id)
+        else:
+            indices = cache.get(f'{md5_value}_uploaded')
+            indices.add(index)
+            cache.set(f'{md5_value}_uploaded',indices)
 
 def get_file_md5(filename):
     '''
@@ -119,9 +123,9 @@ def merge_chunks(md5,folder_name):
     chunk_file_path = os.listdir(chunks_dir)
     total = cache.get(md5)
     if len(chunk_file_path) != total:
-        missing_chunk_index = [i for i in range(1,total+1) if str(i) not in chunk_file_path]
+        uploaded_chunk_index = [i for i in range(1,total+1) if str(i) in chunk_file_path]
         cache.delete(f'{md5}_merged')
-        return missing_chunk_index
+        return uploaded_chunk_index
     else:
         try:
             chunk_file_path = [os.path.join(chunks_dir,i) for i in chunk_file_path]
@@ -142,9 +146,9 @@ def merge_chunks(md5,folder_name):
                     with open(chunk,'rb')as f:
                         content = f.read()
                         out.write(content)
-                    os.remove(chunk)
-            os.rmdir(chunks_dir)
-            cache.delete_many([f'file_name_{md5}',f'folder_id_{md5}',f'{md5}_uploaded',md5])
+                    # os.remove(chunk)
+            # os.rmdir(chunks_dir)
+            # cache.delete_many([f'file_name_{md5}',f'folder_id_{md5}',f'{md5}_uploaded',md5])
             if md5 != get_file_md5(destination):
                 cache.delete(f'{md5}_merged')
                 os.remove(destination)

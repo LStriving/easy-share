@@ -48,18 +48,18 @@ $(document).ready(function () {
     }
 
     $("#pagination-links").empty();
-    if (currentPage < totalPages) {
-      $("#pagination-links").append(
-        '<a href="?" class="pagination-link" page="' +
-          (currentPage + 1) +
-          '">Next</a>'
-      );
-    }
     if (currentPage > 1) {
       $("#pagination-links").append(
         '<a href="?" class="pagination-link" page="' +
           (currentPage - 1) +
           '">Previous</a>'
+      );
+    }
+    if (currentPage < totalPages) {
+      $("#pagination-links").append(
+        '<a href="?" class="pagination-link" page="' +
+          (currentPage + 1) +
+          '">Next</a>'
       );
     }
 

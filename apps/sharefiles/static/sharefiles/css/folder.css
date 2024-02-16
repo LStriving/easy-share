@@ -218,6 +218,9 @@
     left: 90%;
     font-size: large;
 }
+.pagination-link {
+  padding: 5px;
+}
 
 a {
     text-decoration: none;

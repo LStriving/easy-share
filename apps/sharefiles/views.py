@@ -438,7 +438,10 @@ def merge_upload_chunks(request):
         des = merge_chunks(file_md5,folder_name)
         if des is None:
             return Response(status=status.HTTP_202_ACCEPTED)
-        return Response(status=status.HTTP_200_OK,data=des)
+        if isinstance(des,str):
+            return Response(status=status.HTTP_200_OK,data=des)
+        elif isinstance(des,list):
+            return Response(status=status.HTTP_206_PARTIAL_CONTENT,data={'message':f'Index {des} are(is) uploaded.'})
     except Exception as e:
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
 
