@@ -1,5 +1,5 @@
-@hostname = localhost
-@port = 8000
+@hostname = luohailin.cn
+@port = 4080
 @host = {{hostname}}:{{port}}
 @auth = Basic THN0cml2aW5nOjUyMDEzMTQuLlFx
 @createdAt = {{$datetime iso8601}}
@@ -84,7 +84,7 @@ Content-Disposition: form-data; name="folder"
 
 
 ### Creator view the folder files
-GET /easyshare/folder_detail/9 HTTP/1.1
+GET /easyshare/folder_detail/2 HTTP/1.1
 Content-Type: application/json
 Authorization: {{auth}}
 Host: {{host}}

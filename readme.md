@@ -77,5 +77,8 @@ celery -A EasyShare beat
 - [x] Docker Deploy
 - [ ] Logo url
 - [x] User guidance manual
-- [ ] Large file removal strategy
+- [x] Large file removal strategy
 - [ ] Fix lacking port for media url when deploying on Docker
+- [x] lock redis cache for concurrent upload
+- [ ] Multiple upload
+- [ ] Prevent failed upload file from opening other sites from the users / Decrease the waiting time

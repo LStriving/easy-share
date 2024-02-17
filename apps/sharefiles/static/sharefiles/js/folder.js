@@ -110,13 +110,13 @@ $(document).ready(function () {
   $("#delete-folder").on("click", function () {
     // display the confirm dialog
     confirmDialog.style.display = "block";
+    var folderName = contextMenu.dataset.Name;
+    const folderNameElement = document.getElementById("delete-folder-name");
+    folderNameElement.innerHTML = folderName;
   });
 
   $("#confirm-delete-btn").on("click", function () {
     var folderId = contextMenu.dataset.Id;
-    var folderName = contextMenu.dataset.Name;
-    const folderNameElement = document.getElementById("delete-folder-name");
-    folderNameElement.innerHTML = folderName;
     // Implement the logic to delete the file with fileId
     $.ajax({
       url: `/easyshare/folder_remove/${folderId}`,

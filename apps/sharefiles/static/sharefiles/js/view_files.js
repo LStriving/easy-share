@@ -111,14 +111,14 @@ $(document).ready(function () {
   // menu actions
   // delete file
   $("#delete-file").on("click", function () {
+    var fileName = contextMenu.dataset.Name;
     confirmDialog.style.display = "block";
+    const fileNameElement = document.getElementById("delete-file-name");
+    fileNameElement.innerHTML = fileName;
   });
 
   $(".confirm-delete-btn").on("click", function () {
     var fileId = contextMenu.dataset.Id;
-    var fileName = contextMenu.dataset.Name;
-    const fileNameElement = document.getElementById("delete-file-name");
-    fileNameElement.innerHTML = fileName;
     $.ajax({
       url: `/easyshare/large_file_remove`,
       method: "DELETE",

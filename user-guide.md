@@ -44,8 +44,8 @@ The file system allows users to upload files and share them with other users. It
 1. **Create Folder**: A Folder is a place where you can share all files in it and share them.
 2. **Check File**: Check if the file is already in the system by send the md5 of the file to the server.
 3. **Split File**: Split the file into chunks and upload them to the server.
-4. **Merge File**: The server will merge the chunks into a complete file and save it to the server when checking the file (step 2).
+4. **Merge File**: ~~The server will merge the chunks into a complete file and save it to the server when checking the file (step 2).~~ The server will merge the chunks into a complete file and save it to the server when receiving the signal from the client/frontend.
 5. **Create File**: Create a file database instance when upload is success!
-    > Make sure you have launch the celery worker to merge the file.
 
-Test File Upload: site `http://host:port/easyshare/large_file`, Step: ![Test Large File Upload](largefile-status.png)
+
+> (Deprecated) Test File Upload: site `http://host:port/easyshare/large_file`, Step: ![Test Large File Upload](largefile-status.png)
