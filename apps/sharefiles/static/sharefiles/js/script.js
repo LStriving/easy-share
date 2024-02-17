@@ -343,6 +343,11 @@ async function handleUpload() {
     showNotification("error", "Error", "Please select a file");
     return;
   }
+  // check if the file is not video
+  if (!file.type.includes("video")) {
+    showNotification("error", "Error", "Please select a video file");
+    return;
+  }
   //unblur_preloader the background
   document.getElementById("upload-file").style.display = "none";
   $("body div:not(#upload-file)").css("filter", "blur(0px)");
