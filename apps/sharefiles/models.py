@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib import admin
 from access.models import User
+import os
 
 
 class Folder(models.Model):
@@ -18,7 +19,7 @@ class Folder(models.Model):
         unique_together = ('name','user')
 
 def get_folder_name(instance, filename):
-    return 'uploads/'+ instance.folder.name + '/' + filename
+    return os.path.join('uploads', instance.folder.name, filename)
 
 class File(models.Model):
     # a model for uploaded files

@@ -4,6 +4,20 @@ const CHUNK_SIZE = 5;
 const WAIT_MERGE = 3;
 var uploaded_chunks_num = {};
 
+// Function to get CSRF token from cookies
+function getCSRFToken() {
+  var csrfToken = null;
+  var cookies = document.cookie.split(";");
+  for (var i = 0; i < cookies.length; i++) {
+    var cookie = cookies[i].trim();
+    if (cookie.startsWith("csrftoken=")) {
+      csrfToken = cookie.substring("csrftoken=".length, cookie.length);
+      break;
+    }
+  }
+  return csrfToken;
+}
+
 $(document).ready(function () {
   $("form input").change(function () {
     $("form p").text(this.files.length + " file(s) selected");

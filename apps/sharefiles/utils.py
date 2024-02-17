@@ -3,10 +3,12 @@ import hashlib
 import uuid
 import time
 import redis
+import platform
 from django.core.cache import cache
 from EasyShare.celery import app
 from EasyShare.settings.base import MEDIA_ROOT
 from .redis_pool import POOL
+from django.core.exceptions import SuspiciousFileOperation
 
 # TODO: needs to check
 def file_same_or_not(path1,path2):
@@ -74,6 +76,19 @@ def set_chunk_meta_cache(md5_value,index,total,file_name,folder_id):
             indices = cache.get(f'{md5_value}_uploaded')
             indices.add(index)
             cache.set(f'{md5_value}_uploaded',indices)
+
+def remove_chunk_meta_cache(md5_value):
+    conn = redis.Redis(connection_pool=POOL)
+    with conn.lock(f'{md5_value}_lock'):
+        cache.delete_many([md5_value,f'{md5_value}_uploaded',f'file_name_{md5_value}',f'folder_id_{md5_value}',f'{md5_value}_merged'])
+
+def remove_chunks(md5_value):
+    chunks_dir = os.path.join(MEDIA_ROOT,'tmp',md5_value)
+    if os.path.exists(chunks_dir):
+        for file in os.listdir(chunks_dir):
+            file_path = os.path.join(chunks_dir,file)
+            os.remove(file_path)
+        os.rmdir(chunks_dir)
 
 def get_file_md5(filename):
     '''
@@ -161,6 +176,28 @@ def merge_chunks(md5,folder_name):
             # remove the destination file
             os.remove(destination)
             cache.delete(f'{md5}_merged')
+
+def Windows_patch_remove_file(file):
+    '''
+    Remove file for windows and patch Django bug
+    '''
+    # get system type
+    if platform.platform().__contains__('Windows'):
+        try:
+            file.upload.delete(save=False)
+        except SuspiciousFileOperation as e:
+            # parse the file path from the error message
+            to_parse = e.args[0]
+            base_path = to_parse.split('(')[2].split(')')[0]
+            file_path = to_parse.split(':')[1].split(')')[0]
+            final_path = base_path + file_path
+            # remove the file
+            if os.path.exists(final_path):
+                os.remove(final_path)
+            else:
+                print(f"File {final_path} does not exist")
+    else:
+        file.upload.delete(save=False)
 
 
 @app.task

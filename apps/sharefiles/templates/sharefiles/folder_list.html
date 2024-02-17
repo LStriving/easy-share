@@ -1,14 +1,16 @@
 <!-- templates/folder_list.html -->
 {% extends 'base.html' %} {% block content %} {% load static %}
 <link rel="stylesheet" href="{% static 'sharefiles/css/folder.css' %}" />
+<link rel="stylesheet" href="{% static 'sharefiles/css/styles.css' %}" />
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'sharefiles/js/script.js' %}"></script>
 <script src="{% static 'sharefiles/js/folder.js' %}"></script>
 <link
   rel="stylesheet"
   href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
 />
 
-<h2>Working Folders</h2>
+<h1>Working Folders</h1>
 <ul id="folder-list"></ul>
 <button id="create-folder-btn">Create Folder</button>
 
@@ -39,11 +41,11 @@
 </div>
 
 {% comment %} confirm dialog for Delete {% endcomment %}
-<div id="confirm-delete" class="testbox" style="display: none">
+<div class="confirm-delete testbox" style="display: none">
   <h2>Confirm Delete</h2>
   <hr />
   <p>Are you sure you want to delete folder <span id="delete-folder-name"></span>?</p>
-  <button type="button" id="cancel-delete">Cancel</button>
-  <button id="confirm-delete-btn">Delete</button>
+  <button type="button" class="cancel-delete">Cancel</button>
+  <button id="confirm-delete-btn" class="confirm-delete-btn">Delete</button>
 </div>
 {% endblock %}

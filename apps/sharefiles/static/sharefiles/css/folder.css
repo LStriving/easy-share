@@ -284,18 +284,18 @@ ul#file-list {
   transition-duration: 0ms;
 }
 
-#confirm-delete p{
+.confirm-delete p{
   width: 100%;
 }
-#confirm-delete span{
+.confirm-delete span{
   font-weight: bold;
 }
-#confirm-delete button{
+.confirm-delete button{
   margin-left: 14%;
   margin-right: 10%;
   width: 25%;
 }
-#confirm-delete-btn{
+.confirm-delete-btn{
   background-color: brown;
   border-color: rgba(206, 55, 31, 0.75);
   -webkit-box-shadow: 0 3px rgba(206, 55, 31, 0.75);

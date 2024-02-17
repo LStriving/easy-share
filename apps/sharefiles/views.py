@@ -2,7 +2,7 @@ import mimetypes
 from sqlite3 import IntegrityError
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
-from django.shortcuts import get_list_or_404, render
+from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
 from EasyShare.settings.base import MAX_HANDLE_FILE
@@ -13,8 +13,6 @@ from .models import Folder, File
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
-from django.http import HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
 
 import os
 
@@ -113,9 +111,12 @@ class FolderDelete(generics.DestroyAPIView):
             for file in files:
                 os.remove(file.upload.path)
                 print(f"Remove:{file.upload.path}")
-        except Exception:
-            print(f'Warning: Local folder id: {id} remove failed! It may be moved.')
-        return Folder.objects.filter(id=id)
+            return Folder.objects.filter(id=id)
+        except ObjectDoesNotExist:
+            print(f'Folder with id: {id} does not exist!')
+        except FileNotFoundError as e:
+            print(e)
+            print(f'Warning: Local folder id: {id} remove failed! Some files may be removed.')
 
 
 class SharedFolderDetail(generics.ListAPIView):
@@ -444,6 +445,63 @@ def merge_upload_chunks(request):
             return Response(status=status.HTTP_206_PARTIAL_CONTENT,data={'message':f'Index {des} are(is) uploaded.'})
     except Exception as e:
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
+
+@api_view(['DELETE','POST'])
+@permission_classes([IsFolderOwnerOrAdmin])
+def remove_large_file(request):
+    '''
+        delete:
+            remove large file from disk and database forever
+        args:
+            file_id/md5; folder_id
+    '''
+    # get args
+    data = request.data
+    file_id = data.get('file_id')
+    if file_id is not None:
+        # check file
+        try:
+            file = File.objects.get(id=file_id)
+        except File.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not found'})
+        if file.md5 is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'Not a large file'})
+        # remove file
+        try:
+            file.delete()
+            Windows_patch_remove_file(file)
+            # remove all cache
+            remove_chunk_meta_cache(file.md5)
+            # remove file chunks from disk
+            remove_chunks(file.md5)
+            return Response(status=status.HTTP_200_OK)
+        except FileNotFoundError:
+            return Response(status=status.HTTP_204_NO_CONTENT,data={'message':'File removed already'})
+        except redis.exceptions.ConnectionError:
+            pass
+    elif file_md5 := data.get('md5'):
+        # remove file
+        try:
+            file = File.objects.get(md5=file_md5)
+        except File.DoesNotExist:
+            print("File Removed Already, trying to remove chunks")
+        if file_md5 is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'Not a large file'})
+        try:
+            path = cache.get(f'{file_md5}_merged')
+            if path is not None:
+                os.remove(path=path)
+            # remove all cache
+            remove_chunk_meta_cache(file_md5)
+            # remove file chunks from disk
+            remove_chunks(file_md5)
+            return Response(status=status.HTTP_200_OK)
+        except redis.exceptions.ConnectionError:
+            pass
+        except Exception as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"file_id" or "md5" field is required'})
 
 class FileUploadView(TemplateView):
     template_name = 'sharefiles/file_upload.html'

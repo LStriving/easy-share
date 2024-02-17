@@ -26,7 +26,7 @@ $(document).ready(function () {
         }
         data.results.forEach(function (file) {
           $("#file-list").append(
-            "<div class=folder> " +
+            `<div class=folder data-file-id=${file.id} data-file-name=${file.name}>` +
               '<i class="material-icons">video_file</i><li>' +
               file.name +
               "</li></div>"
@@ -95,5 +95,47 @@ $(document).ready(function () {
     // hide the #upload-file div
     document.getElementById("upload-file").style.display = "none";
     $("body div:not(#upload-file)").css("filter", "blur(0px)");
+  });
+
+  const contextMenu = document.querySelector(".wrapper");
+  // Handle right-click events
+  $(document).on("contextmenu", ".folder", function (e) {
+    e.preventDefault();
+    var file_id = $(this).data("file-id");
+    var file_name = $(this).data("file-name");
+    console.log("Right-clicked on file name: ", file_name);
+    showContextMenu(e, contextMenu, file_id, file_name);
+  });
+
+  const confirmDialog = document.getElementsByClassName("confirm-delete")[0];
+  // menu actions
+  // delete file
+  $("#delete-file").on("click", function () {
+    confirmDialog.style.display = "block";
+  });
+
+  $(".confirm-delete-btn").on("click", function () {
+    var fileId = contextMenu.dataset.Id;
+    var fileName = contextMenu.dataset.Name;
+    const fileNameElement = document.getElementById("delete-file-name");
+    fileNameElement.innerHTML = fileName;
+    $.ajax({
+      url: `/easyshare/large_file_remove`,
+      method: "DELETE",
+      data: { file_id: fileId },
+      beforeSend: function (xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+      },
+      success: function () {
+        confirmDialog.style.display = "none";
+        loadFiles(folderId, page);
+        showNotification("success", "Success", "File deleted successfully");
+      },
+      error: function (error) {
+        confirmDialog.style.display = "none";
+        console.error(error);
+        showNotification("error", "Error", "An error occurred");
+      },
+    });
   });
 });

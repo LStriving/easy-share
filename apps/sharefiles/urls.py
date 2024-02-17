@@ -21,4 +21,5 @@ urlpatterns = [
     path(r'folder_list',views.FolderListWebView.as_view()),
     path(r'file_list/<int:folder_id>',views.FolderDetailView.as_view()),
     path(r'merge_chunks',views.merge_upload_chunks,name='merge_chunks'),
+    path(r'large_file_remove',views.remove_large_file,name='remove_large_file'),
 ]

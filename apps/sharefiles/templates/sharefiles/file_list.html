@@ -12,14 +12,13 @@
   integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
   crossorigin="anonymous"
 />
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
 
 {% comment %}
 <script src="{% static 'sharefiles/js/folder.js' %}"></script>
 {% endcomment %}
 <script src="{% static 'sharefiles/js/script.js' %}"></script>
 
-<h2 id="folder-name"><span></span></h2>
+<h1 id="folder-name"><span></span></h1>
 <button id="go-back-btn">Back</button>
 <button id="upload-btn">Upload</button>
 {% comment %} upload file button {% endcomment %}
@@ -44,6 +43,35 @@
 <ul id="file-list">
   <!-- Folders will be appended here dynamically -->
 </ul>
+
+<div class="wrapper">
+  <div class="content">
+    <ul class="menu">
+      <li class="item" id="preview-file">
+        <i class="material-icons">preview</i>
+        <span>Preview</span>
+      </li>
+      <li class="item" id="delete-file">
+        <i class="material-icons">delete</i>
+        <span>Delete</span>
+      </li>
+    </ul>
+  </div>
+</div>
+</div>
+
+
+{% comment %} confirm dialog for Delete {% endcomment %}
+<div class="confirm-delete testbox" style="display: none">
+  <h2>Confirm Delete</h2>
+  <hr />
+  <p>
+    Are you sure you want to delete file <span id="delete-file-name"></span>?
+  </p>
+  <button type="button" class="cancel-delete">Cancel</button>
+  <button class="confirm-delete-btn">Delete</button>
+</div>
+
 {% comment %} pagination {% endcomment %}
 <div id="pagination-links">
   <!-- Pagination links will be appended here dynamically -->

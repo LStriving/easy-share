@@ -1,17 +1,4 @@
 $(document).ready(function () {
-  // Function to get CSRF token from cookies
-  function getCSRFToken() {
-    var csrfToken = null;
-    var cookies = document.cookie.split(";");
-    for (var i = 0; i < cookies.length; i++) {
-      var cookie = cookies[i].trim();
-      if (cookie.startsWith("csrftoken=")) {
-        csrfToken = cookie.substring("csrftoken=".length, cookie.length);
-        break;
-      }
-    }
-    return csrfToken;
-  }
   // Function to load folders
   function loadFolders(currentPage = 1) {
     $.ajax({
@@ -100,6 +87,7 @@ $(document).ready(function () {
         success: function () {
           $("#create-folder-modal").hide();
           loadFolders(); // Reload folders after creation
+          showNotification("success", "Success", "Folder created successfully");
         },
         error: function (error) {
           console.error(error);
@@ -115,69 +103,36 @@ $(document).ready(function () {
     var folder_id = $(this).data("folder-id");
     var folder_name = $(this).data("folder-name");
     console.log("Right-clicked on folder name: ", folder_name);
-    showContextMenu(e, folder_id, folder_name);
+    showContextMenu(e, contextMenu, folder_id, folder_name);
   });
 
-  // Close context menu on click outside
-  $(document).on("click", function () {
-    hideContextMenu();
-  });
-  // Context menu functions
-  function showContextMenu(e, folderId, folderName) {
-    let x = e.pageX,
-      y = e.pageY,
-      winWidth = window.innerWidth,
-      winHeight = window.innerHeight,
-      cmWidth = contextMenu.offsetWidth,
-      cmHeight = contextMenu.offsetHeight;
-    x = x > winWidth - cmWidth ? winWidth - cmWidth - 5 : x;
-    y = y > winHeight - cmHeight ? winHeight - cmHeight - 5 : y;
-    contextMenu.style.left = `${x}px`;
-    contextMenu.style.top = `${y}px`;
-    contextMenu.style.visibility = "visible";
-    contextMenu.style.display = "block";
-    // Store the folder id in the context me
-    contextMenu.dataset.folderId = folderId;
-    contextMenu.dataset.folderName = folderName;
-  }
-
-  function hideContextMenu() {
-    contextMenu.style.visibility = "hidden";
-    contextMenu.style.display = "none";
-  }
-
+  const confirmDialog = document.getElementsByClassName("confirm-delete")[0];
   $("#delete-folder").on("click", function () {
-    var folderId = contextMenu.dataset.folderId;
-    var folderName = contextMenu.dataset.folderName;
-    console.log("Delete folder with id: ", folderId);
     // display the confirm dialog
-    const confirmDialog = document.getElementById("confirm-delete");
     confirmDialog.style.display = "block";
+  });
+
+  $("#confirm-delete-btn").on("click", function () {
+    var folderId = contextMenu.dataset.Id;
+    var folderName = contextMenu.dataset.Name;
     const folderNameElement = document.getElementById("delete-folder-name");
     folderNameElement.innerHTML = folderName;
-
-    $("#confirm-delete-btn").on("click", function () {
-      // Implement the logic to delete the file with fileId
-      $.ajax({
-        url: `/easyshare/folder_remove/${folderId}`,
-        method: "DELETE",
-        beforeSend: function (xhr, settings) {
-          xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
-        },
-        success: function () {
-          confirmDialog.style.display = "none";
-          loadFolders(page); // After deletion, reload the files
-        },
-        error: function (error) {
-          console.error(error);
-        },
-      });
-      // After deletion, reload the files
-      loadFolders(page);
+    // Implement the logic to delete the file with fileId
+    $.ajax({
+      url: `/easyshare/folder_remove/${folderId}`,
+      method: "DELETE",
+      beforeSend: function (xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+      },
+      success: function () {
+        confirmDialog.style.display = "none";
+        loadFolders(page); // After deletion, reload the files
+        showNotification("success", "Success", "Folder deleted successfully");
+      },
+      error: function (error) {
+        console.error(error);
+        showNotification("error", "Error", "An error occurred");
+      },
     });
-  });
-
-  $("#cancel-delete").on("click", function () {
-    $("#confirm-delete").hide();
   });
 });
