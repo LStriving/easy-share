@@ -177,27 +177,28 @@ def merge_chunks(md5,folder_name):
             os.remove(destination)
             cache.delete(f'{md5}_merged')
 
-def Windows_patch_remove_file(file):
+def Django_patch_remove_file(file):
     '''
     Remove file for windows and patch Django bug
     '''
     # get system type
-    if platform.platform().__contains__('Windows'):
-        try:
-            file.upload.delete(save=False)
-        except SuspiciousFileOperation as e:
-            # parse the file path from the error message
-            to_parse = e.args[0]
-            base_path = to_parse.split('(')[2].split(')')[0]
-            file_path = to_parse.split(':')[1].split(')')[0]
-            final_path = base_path + file_path
-            # remove the file
-            if os.path.exists(final_path):
-                os.remove(final_path)
-            else:
-                print(f"File {final_path} does not exist")
-    else:
+    try:
         file.upload.delete(save=False)
+    except SuspiciousFileOperation as e:
+        to_parse = e.args[0]
+        base_path = to_parse.split('(')[2].split(')')[0]
+        if platform.platform().__contains__('Windows'):
+            # parse the file path from the error message
+            file_path = to_parse.split(':')[1].split(')')[0]
+        else:
+            file_path = to_parse.split("(")[1].split(")")[0]
+        final_path = base_path + file_path
+        # remove the file
+        if os.path.exists(final_path):
+            os.remove(final_path)
+        else:
+            print(f"File {final_path} does not exist")
+
 
 
 @app.task

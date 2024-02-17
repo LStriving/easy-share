@@ -469,7 +469,7 @@ def remove_large_file(request):
         # remove file
         try:
             file.delete()
-            Windows_patch_remove_file(file)
+            Django_patch_remove_file(file)
             # remove all cache
             remove_chunk_meta_cache(file.md5)
             # remove file chunks from disk
