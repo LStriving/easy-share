@@ -29,26 +29,7 @@ $(document).ready(function () {
     });
   }
   function displayPagination(data, currentPage) {
-    var totalPages = parseInt(data.count / 10);
-    if (data.count % 10) {
-      totalPages += 1;
-    }
-
-    $("#pagination-links").empty();
-    if (currentPage > 1) {
-      $("#pagination-links").append(
-        '<a href="?" class="pagination-link" page="' +
-          (currentPage - 1) +
-          '">Previous</a>'
-      );
-    }
-    if (currentPage < totalPages) {
-      $("#pagination-links").append(
-        '<a href="?" class="pagination-link" page="' +
-          (currentPage + 1) +
-          '">Next</a>'
-      );
-    }
+    showPageButton(data, currentPage);
 
     // Handle pagination link clicks
     $(".pagination-link").on("click", function (e) {
@@ -73,9 +54,20 @@ $(document).ready(function () {
     $("#create-folder-modal").hide();
   });
 
-  // Submit new folder on button click
+  // Submit new folder on button click or enter key press
   $("#submit-folder").on("click", function () {
     var folderName = $("#folder-name").val();
+    createFolder(folderName);
+  });
+
+  $("#folder-name").on("keypress", function (e) {
+    if (e.which === 13) {
+      var folderName = $("#folder-name").val();
+      createFolder(folderName);
+    }
+  });
+
+  function createFolder(folderName) {
     if (folderName) {
       $.ajax({
         url: "/easyshare/folder/user", // Replace with your actual DRF endpoint
@@ -94,7 +86,7 @@ $(document).ready(function () {
         },
       });
     }
-  });
+  }
 
   const contextMenu = document.querySelector(".wrapper");
   // Handle right-click events
