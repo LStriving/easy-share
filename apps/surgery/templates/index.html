@@ -1,0 +1,19 @@
+{% extends './surgery_base.html' %} {% block content %} {% load static %}
+<link rel="stylesheet" href="{% static 'surgery/css/style.css' %}" />
+
+<header class="bgimg w3-display-container" id="home">
+  <div class="w3-display-middle w3-center">
+    <span class="w3-text-white" style="font-size: 90px"
+      >Intraoperative<br />Navigation</span
+    >
+  </div>
+</header>
+<div class="center">
+  <div class="content">
+    <div id="homepage-btns">
+      <a class="btn" href="/">Offline</a>
+      <a class="btn" href="/">Live</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

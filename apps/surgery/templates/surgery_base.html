@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'surgery/css/w3.css' %}" />
+  </head>
+  <body>
+    <div class="w3-top" id="navigation">
+      <div class="w3-row w3-padding">
+        <div class="w3-col s3">
+          <a href="/surgery" class="w3-button w3-block">HOME</a>
+        </div>
+        <div class="w3-col s3">
+          <a href="#about" class="w3-button w3-block">OFFLINE</a>
+        </div>
+        <div class="w3-col s3">
+          <a href="#menu" class="w3-button w3-block">LIVE</a>
+        </div>
+        <div class="w3-col s3">
+          <a href="/easyshare/folder_list" class="w3-button w3-block"
+            >WORK DIR</a
+          >
+        </div>
+      </div>
+    </div>
+
+    {% block content %} {% endblock %}
+  </body>
+</html>

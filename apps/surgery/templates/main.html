@@ -1,0 +1,321 @@
+{% extends './surgery_base.html' %} {% block content %} {% load static %}
+<!-- speaker icon -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>
+<link rel="stylesheet" href="{% static "surgery/css/surgery.css" %}">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="{% static 'surgery/js/surgery.js' %}"></script>
+
+<!-- Information Part (Left Side) -->
+<div class="app">
+  <div class="information">
+    <div class="case-infomation">
+      <h3>
+        Case Information
+        <button class="case-btn">Hide</button>
+      </h3>
+      <!-- Form for manual input -->
+      <form id="surgeryForm">
+        <div class="form-item">
+          <label for="surgeon">surgeon </label>
+          <input
+            type="text"
+            id="surgeon"
+            name="surgeon"
+            placeholder="Enter surgeon"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="patientID">Patient ID </label>
+          <input
+            type="text"
+            id="patientID"
+            name="patientID"
+            placeholder="Enter Patient ID"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="name">Name </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter Name"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="age">Age </label>
+          <input
+            type="text"
+            id="age"
+            name="age"
+            placeholder="Enter Age"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="gender">Gender </label>
+          <select id="gender" name="gender" required>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-item-btn">
+          <button id="submit-btn" type="submit">Submit</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="phase-recognition">
+      <h3>Phase Recognition</h3>
+      <div class="recog">
+        <div class="recog-cls" id="cls1">
+          <div class="title">Corneal incision by 15 degree keratome</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls2">
+          <div class="title">Corneal incision by 3.2 mm keratome</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Carbachol injection</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">OVDs injection</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Gonioscopy</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Goniotomy</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">OVDs irrigation/aspiration</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Would closure</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Idle</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Horizontal bars for action probabilities go here -->
+    </div>
+
+    <div class="summary-report">
+      <h3>Summary Report</h3>
+      <div class="recog">
+        <div id="wholeProcessDuration" class="report-cls">
+          <div class="action">
+            <p>Duration</p>
+          </div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action1Duration" class="report-cls">
+          <div class="action">Corneal incision by 15 degree keratome</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action2Duration" class="report-cls">
+          <div class="action">Corneal incision by 3.2 mm keratome</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action3Duration" class="report-cls">
+          <div class="action">Carbachol injection</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action4Duration" class="report-cls">
+          <div class="action">OVDs injection</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action5Duration" class="report-cls">
+          <div class="action">Gonioscopy</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action6Duration" class="report-cls">
+          <div class="action">Goniotomy</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action7Duration" class="report-cls">
+          <div class="action">OVDs irrigation/aspiration</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action8Duration" class="report-cls">
+          <div class="action">Would closure</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+      </div>
+      <!-- Accumulated time for different actions goes here -->
+    </div>
+  </div>
+
+  <div class="video_n_timeline">
+    <!-- Video Part (Upper Right Side) -->
+    <div class="video">
+      <div id="icon-container"></div>
+      <div class="video-container">
+        <canvas id="backgroundCanvas"> Video Source Not Available</canvas>
+        <video id="surgeryVideo" onclick="playPause(this)">
+          <!-- pay attention to platform for slash -->
+          <source src="/media/demo/new4_vis.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div id="caseInfoDiv"></div>
+      <div id="phaseInfoDiv"></div>
+      <audio id="alarm-1" preload="auto">
+        <source
+          src="{% static '/surgery/audio/mixkit-atm-cash-machine-key-press-2841.wav'%}"
+          type="audio/wav"
+        />
+        Your browser does not support the audio tag.
+      </audio>
+      <audio id="alarm-2" preload="auto">
+        <source
+          src="{% static '/surgery/audio/A3TMECN-beep.mp3'%}"
+          type="audio/wav"
+        />
+        Your browser does not support the audio tag.
+      </audio>
+      <!-- <div id="customControls">
+              <button id="playPauseButton">Play</button>
+          </div> -->
+    </div>
+
+    <!-- Timeline Part (Bottom Right Side) -->
+    <div class="timeline">
+      <div class="title">
+        <h3>Timeline</h3>
+        <div class="color-bar-box">
+          <div>0.0</div>
+          <div class="color-bar"></div>
+          <div>1.0</div>
+        </div>
+      </div>
+      <div class="timeline-box">
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Corneal incision by 15 degree keratome</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Corneal incision by 3.2 mmkeratome</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Carbachol injection</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">OVDs injection</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Gonioscopy</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Goniotomy</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">OVDs irrigation/aspiration</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Would closure</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Idle</div>
+          <div class="blocks"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
