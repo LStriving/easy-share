@@ -9,8 +9,13 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/asgi/
 
 import os
 
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
+from .routing import websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.test')
 
-application = get_asgi_application()
+application = ProtocolTypeRouter({
+    "websocket": URLRouter(websocket_urlpatterns),
+    "http": get_asgi_application(),
+})

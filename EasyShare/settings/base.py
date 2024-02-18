@@ -39,11 +39,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 ALLOWED_HOSTS = ['luohailin.cn', 'localhost','127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['http://luohailin.cn:4080']
-
-
+# Daphne
+ASGI_APPLICATION = 'EasyShare.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +56,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.access',
     'apps.sharefiles',
+    'apps.video_rtc',
+    'apps.surgery',
 ]
 
 MIDDLEWARE = [
@@ -121,7 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LOGIN_REDIRECT_URL = '/doc'  # Redirect to the home page after login
+LOGIN_REDIRECT_URL = '/surgery'  # Redirect to the home page after login
 LOGOUT_REDIRECT_URL = '/user/login'  # Redirect to the home page after logout
 
 REST_FRAMEWORK = {

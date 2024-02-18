@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Access Example</title>
+  </head>
+  <body>
+    <h1>Camera Access Example</h1>
+    <!-- Update the video, canvas, and button elements in HTML -->
+    <video id="videoElement" width="400" height="300" autoplay></video>
+    <canvas id="canvas" width="400" height="300"></canvas>
+    <button id="segmentationButton">Start Segmentation</button>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const videoElement = document.getElementById("videoElement");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+        const segmentationButton =
+          document.getElementById("segmentationButton");
+
+        let isSegmentationActive = false;
+        let socket;
+
+        // Function to toggle segmentation start/stop
+        function toggleSegmentation() {
+          isSegmentationActive = !isSegmentationActive;
+
+          if (isSegmentationActive) {
+            // Start segmentation
+            segmentationButton.innerText = "Stop Segmentation";
+            socket = new WebSocket(
+              "ws://" + window.location.host + "/ws/segmentation/"
+            );
+
+            socket.onopen = (event) => {
+              console.log("WebSocket connection opened:", event);
+            };
+
+            socket.onmessage = (event) => {
+              // Receive segmentation result from the backend
+              const result = JSON.parse(event.data);
+              // Update the canvas with the segmentation result
+              // You can customize this part based on your segmentation result format
+              context.clearRect(0, 0, canvas.width, canvas.height);
+              context.drawImage(
+                videoElement,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+              // Process the segmentation result and overlay it on the canvas
+              // For simplicity, assume result is a binary mask (black and white)
+              context.globalCompositeOperation = "source-in";
+              context.fillStyle = "rgba(255, 0, 0, 0.5)"; // Adjust the color and opacity
+              context.fillRect(0, 0, canvas.width, canvas.height);
+              context.globalCompositeOperation = "source-over";
+            };
+          } else {
+            // Stop segmentation
+            segmentationButton.innerText = "Start Segmentation";
+            if (socket) {
+              socket.close();
+            }
+          }
+        }
+
+        segmentationButton.addEventListener("click", toggleSegmentation);
+
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => {
+            videoElement.srcObject = stream;
+          })
+          .catch((error) => {
+            console.error("Error accessing camera:", error);
+          });
+
+        setInterval(() => {
+          if (isSegmentationActive) {
+            // Capture a frame from the video stream
+            context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            // Convert the frame to base64 data
+            const imageData = canvas.toDataURL("image/jpeg");
+
+            // Send the frame to the backend (Django) through WebSocket
+            socket.send(JSON.stringify({ frame: imageData }));
+          }
+        }, 1000); // Adjust the interval as needed
+      });
+    </script>
+  </body>
+</html>

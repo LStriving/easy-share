@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Access Example</title>
+  </head>
+  <body>
+    <h1>Camera Access Example</h1>
+
+    <!-- Add a canvas element to capture frames -->
+    <video id="videoElement" width="400" height="300" autoplay></video>
+    <canvas id="canvas" width="400" height="300" style="display: none"></canvas>
+    <span id="result"></span>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const videoElement = document.getElementById("videoElement");
+        const canvas = document.getElementById("canvas");
+        const context = canvas.getContext("2d");
+
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then((stream) => {
+            videoElement.srcObject = stream;
+          })
+          .catch((error) => {
+            console.error("Error accessing camera:", error);
+          });
+
+        setInterval(() => {
+          // Capture a frame from the video stream
+          context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+          // Convert the frame to base64 data
+          const imageData = canvas.toDataURL("image/jpeg");
+
+          // Create a FormData object and append the image data
+          const formData = new FormData();
+          formData.append("frame", imageData);
+
+          // Send the FormData to the backend (Django)
+          fetch("/rtc/upload_frame/", {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              // Handle the response from the backend if needed
+              // Display the response in the result span
+              // parse the json response and display the message
+              document.getElementById("result").textContent = data.prediction;
+            })
+            .catch((error) => console.error("Error uploading frame:", error));
+        }, 1000); // Adjust the interval as needed
+      });
+    </script>
+  </body>
+</html>
