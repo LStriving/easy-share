@@ -186,6 +186,11 @@ function check_upload_status(hash) {
         } else if (xhr.status == 202) {
           resolve(WAIT_MERGE);
         } else if (xhr.status == 200) {
+          showNotification(
+            "info",
+            "Info",
+            "Merging chunks, please don't close the page"
+          );
           const merge_status = await mergeChunks(hash);
           if (merge_status === DONE) {
             resolve(DONE);

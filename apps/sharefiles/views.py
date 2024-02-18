@@ -1,5 +1,4 @@
 import mimetypes
-from sqlite3 import IntegrityError
 from rest_framework import generics, permissions,status
 from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_list_or_404

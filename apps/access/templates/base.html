@@ -7,7 +7,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {% load static %}
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+    <link rel="stylesheet" href="{% static 'surgery/css/w3.css' %}" />
     <link rel="stylesheet" href="{% static 'access/css/styles.css' %}" />
     <link
       href="https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600"
@@ -30,8 +30,25 @@
   <body>
     <header>
       <!-- Your header content goes here -->
+      <div class="w3-top" id="navigation">
+        <div class="w3-row w3-padding">
+          <div class="w3-col s3">
+            <a href="/surgery" class="w3-button w3-block">HOME</a>
+          </div>
+          <div class="w3-col s3">
+            <a href="#about" class="w3-button w3-block">OFFLINE</a>
+          </div>
+          <div class="w3-col s3">
+            <a href="#menu" class="w3-button w3-block">LIVE</a>
+          </div>
+          <div class="w3-col s3">
+            <a href="/easyshare/folder_list" class="w3-button w3-block"
+              >WORK DIR</a
+            >
+          </div>
+        </div>
+      </div>
     </header>
-
     <main>
       {% block content %} {% endblock %}
       <div id="notification-container"></div>

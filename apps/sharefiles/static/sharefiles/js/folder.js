@@ -24,6 +24,10 @@ $(document).ready(function () {
         displayPagination(data, currentPage);
       },
       error: function (error) {
+        //get status code from error
+        if (error.status === 403) {
+          window.location.href = "/user/login";
+        }
         console.error(error);
       },
     });
