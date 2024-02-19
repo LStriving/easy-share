@@ -97,7 +97,6 @@ $(document).ready(function () {
     const fileNameElement = document.getElementById("delete-file-name");
     fileNameElement.innerHTML = fileName;
   });
-
   $(".confirm-delete-btn").on("click", function () {
     var fileId = contextMenu.dataset.Id;
     $.ajax({
@@ -118,5 +117,13 @@ $(document).ready(function () {
         showNotification("error", "Error", "An error occurred");
       },
     });
+  });
+  // preview file
+  $("#preview-file").on("click", function () {
+    var name = contextMenu.dataset.Name;
+    // get folder name
+    var folderName = $("#folder-name").text();
+    url = `/media/uploads/${folderName}/${name}`;
+    window.open(url, "_blank");
   });
 });
