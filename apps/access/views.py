@@ -174,7 +174,6 @@ def register_view(request):
         else:
             ...
     else:
-        print("Not a post request")
         form = SignUpForm()
     
     return render(request, 'register.html', {'form': form})

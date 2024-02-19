@@ -182,8 +182,18 @@ def Django_patch_remove_file(file):
     Remove file for windows and patch Django bug
     '''
     # get system type
+    path = Django_path_get_path(file)
+    if os.path.exists(path):
+        os.remove(path)
+    else:
+        print(f"File {path} removed already")
+
+def Django_path_get_path(file):
+    '''
+    Get the file path for windows and patch Django bug
+    '''
     try:
-        file.upload.delete(save=False)
+        return file.upload.path
     except SuspiciousFileOperation as e:
         to_parse = e.args[0]
         base_path = to_parse.split('(')[2].split(')')[0]
@@ -193,13 +203,7 @@ def Django_patch_remove_file(file):
         else:
             file_path = to_parse.split("(")[1].split(")")[0]
         final_path = base_path + file_path
-        # remove the file
-        if os.path.exists(final_path):
-            os.remove(final_path)
-        else:
-            print(f"File {final_path} does not exist")
-
-
+        return final_path
 
 @app.task
 def remove_tmp():

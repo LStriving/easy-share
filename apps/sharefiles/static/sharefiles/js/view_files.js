@@ -126,4 +126,37 @@ $(document).ready(function () {
     url = `/media/uploads/${folderName}/${name}`;
     window.open(url, "_blank");
   });
+  // add task
+  $("#add-task").on("click", function () {
+    // send a post request to the server to add a task
+    var fileId = contextMenu.dataset.Id;
+    // send request
+    $.ajax({
+      url: "/surgery/add_task",
+      method: "POST",
+      data: { file_id: fileId },
+      beforeSend: function (xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+      },
+      statusCode: {
+        201: function (data) {
+          showNotification("info", "Info", "Task already exists");
+        },
+        200: function (data) {
+          showNotification("success", "Success", "Task added successfully");
+        },
+        400: function () {
+          showNotification("error", "Error", "Bad request");
+        },
+        403: function () {
+          showNotification("error", "Error", "You do not have permission");
+        },
+      },
+      error: function (error) {
+        // Handle other error scenarios
+        console.error(error);
+        showNotification("error", "Error", "An error occurred");
+      },
+    });
+  });
 });

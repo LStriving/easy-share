@@ -17,6 +17,7 @@ class Folder(models.Model):
     class Meta:
         ordering = ['id']
         unique_together = ('name','user')
+        
 
 def get_folder_name(instance, filename):
     return os.path.join('uploads', instance.folder.name, filename)
