@@ -13,6 +13,7 @@ conda activate dj
 
 ```bash
 pip install -r requirements.txt
+pip install -U channels["daphne"] #channels (for websocket)
 ```
 
 ```bash

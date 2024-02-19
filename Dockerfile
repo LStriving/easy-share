@@ -5,6 +5,8 @@ WORKDIR /app
 
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -U channels["daphne"]
+RUN pip install pillow==10.2.0
 
 COPY . /app
 
