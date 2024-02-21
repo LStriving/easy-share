@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.decorators import login_required
 from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 
@@ -45,7 +46,7 @@ def add_task(request):
     if not create:
         return Response(status=status.HTTP_201_CREATED)
     else:
-        infer_jobs.delay(Django_path_get_path(file))
+        infer_jobs.delay(task.id, Django_path_get_path(file))
         return Response(status=status.HTTP_200_OK)
     
 
@@ -58,3 +59,7 @@ class TaskList(generics.ListAPIView):
     
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
+
+@login_required
+def task_view(request):
+    return render(request, "task.html")

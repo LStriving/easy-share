@@ -12,6 +12,6 @@ class Task(models.Model):
     task_created_time = models.DateTimeField(auto_now_add=True)
     file = models.OneToOneField('sharefiles.File', on_delete=models.CASCADE)
     def __str__(self):
-        return self.task_name
+        return self.task_name + " " + self.file.name
     
 admin.site.register(Task)

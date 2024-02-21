@@ -1,0 +1,19 @@
+{% extends './surgery_base.html' %} {% block content %} {% load static %}
+<link rel="stylesheet" href="{% static 'surgery/css/task.css' %}" />
+<script src="{% static 'access/js/jquery.js' %}"></script>
+<script src="{% static 'surgery/js/task.js' %}"></script>
+<div class="center">
+  <div class="caption">Task</div>
+  <div id="table">
+    <div class="header-row">
+      <span class="cell primary">File</span>
+      <span class="cell">Task Name</span>
+      <span class="cell">Create Time</span>
+      <span class="cell">Result</span>
+      <span class="cell">Status</span>
+    </div>
+    <div id="task-body"></div>
+  </div>
+</div>
+
+{% endblock %}

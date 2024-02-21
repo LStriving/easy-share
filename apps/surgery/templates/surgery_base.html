@@ -4,8 +4,18 @@
     <meta charset="UTF-8" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'surgery/css/w3.css' %}" />
+    <script src="{% static 'sharefiles/js/notification.js' %}"></script>
+    <script src="{% static 'sharefiles/js/pagination.js' %}"></script>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
   </head>
+  <header>{% include "./menu.html" %}</header>
   <body>
-    {% include "./menu.html" %} {% block content %} {% endblock %}
+    {% block content %} {% endblock %}
+    <div class="w3-container">
+      <div class="w3-bar w3-round pagination-links"></div>
+    </div>
   </body>
 </html>
