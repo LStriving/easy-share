@@ -38,7 +38,7 @@ RUN git clone https://github.com/facebookresearch/detectron2 /detectron2_repo
 RUN pip install -e /detectron2_repo
 
 
-RUN git clone https://github.com/LStriving/slowfast.git
+RUN git clone https://github.com/LStriving/slowfast.git /slowfast
 RUN pip install -e /slowfast
 ENV PYTHONPATH=/slowfast/slowfast:$PYTHONPATH
 RUN python /slowfast/setup.py build develop
