@@ -12,8 +12,15 @@ RUN pip install pillow==10.2.0
 
 
 COPY . /app
+
+# Install git-lfs
+RUN apt-get update && \
+    apt-get install -y git-lfs && \
+    git lfs install
+RUN git lfs pull
+
 # pytorch project requirements
-RUN pip install --no-cache-dir apps/surgery/libs/oad/requirements.tx
+RUN pip install --no-cache-dir apps/surgery/libs/oad/requirements.txt
 RUN pip install --no-cache-dir apps/surgery/libs/seg/requirements.txt
 RUN pip install -e apps/surgery/libs/external/slowfast
 RUN pip install -e apps/surgery/libs/external/detectron2_repo
