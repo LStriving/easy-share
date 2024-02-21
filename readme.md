@@ -1,6 +1,26 @@
 # Easy Share
 
-## Installation
+## Clone the project
+
+```bash
+# clone with submodules
+git clone --recurse-submodules <project-url>
+# or
+git clone <project-url>
+git submodule update --init --recursive # if you wish to use the machine learning model
+```
+
+### Large file
+
+Install [git lfs](https://git-lfs.com/) to clone large file for the machine learning model
+
+```bash
+# clone large file (if you have git lfs installed)
+git lfs install
+git lfs pull
+```
+
+## Installation for Local
 
 ### Optional
 
@@ -14,6 +34,7 @@ conda activate dj
 ```bash
 pip install -r requirements.txt
 pip install -U channels["daphne"] #channels (for websocket)
+pip install nvidia-ml-py3 # for gpu monitoring
 ```
 
 ```bash
@@ -64,6 +85,12 @@ celery -A EasyShare worker -c gevent
 celery -A EasyShare beat
 ```
 
+## Installation for Docker
+
+```bash
+GITHUB_TOKEN={your_personal_access_token} docker-compose build
+```
+
 ## User Manual
 
 [User Manual](user-guide.md)
@@ -83,3 +110,4 @@ celery -A EasyShare beat
 - [x] lock redis cache for concurrent upload
 - [ ] Multiple upload
 - [ ] Prevent failed upload file from opening other sites from the users / Decrease the waiting time
+- [ ] Task Site

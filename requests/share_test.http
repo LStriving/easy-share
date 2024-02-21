@@ -1,5 +1,7 @@
-@hostname = luohailin.cn
-@port = 4080
+# @hostname = luohailin.cn
+@hostname = localhost
+@port = 8000
+# @port = 4080
 @host = {{hostname}}:{{port}}
 @auth = Basic THN0cml2aW5nOjUyMDEzMTQuLlFx
 @createdAt = {{$datetime iso8601}}
@@ -9,6 +11,15 @@ GET /easyshare/folder_detail/1
 Authorization: {{auth}}
 Host: {{host}}
 
+###
+GET /surgery/task_list
+Host: {{host}}
+Authorization: {{auth}}
+
+###
+GET /surgery/task_list?page=2
+Host: {{host}}
+Authorization: {{auth}}
 
 ### file detail
 GET /easyshare/file_detail/2

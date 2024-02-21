@@ -29,7 +29,6 @@ RUN conda install ffmpeg=4.3
 RUN apt-get update && \
     apt-get install -y git-lfs && \
     git lfs install
-RUN git lfs pull
 COPY ./apps/surgery/libs/oad/requirements.txt oad.txt
 COPY ./apps/surgery/libs/seg/requirements.txt seg.txt
 RUN pip install --no-cache-dir -r oad.txt
@@ -47,6 +46,7 @@ RUN python /slowfast/setup.py build develop
 # Set the working directory
 WORKDIR /app
 COPY . /app
+RUN git lfs pull
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
