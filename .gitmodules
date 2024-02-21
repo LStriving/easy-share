@@ -4,3 +4,9 @@
 [submodule "apps/surgery/libs/seg"]
 	path = apps/surgery/libs/seg
 	url = https://github.com/LStriving/pidnet.git
+[submodule "apps/surgery/libs/external/slowfast"]
+	path = apps/surgery/libs/external/slowfast
+	url = https://github.com/facebookresearch/slowfast
+[submodule "apps/surgery/libs/external/detectron2_repo"]
+	path = apps/surgery/libs/external/detectron2_repo
+	url = https://github.com/facebookresearch/detectron2
