@@ -34,8 +34,8 @@ COPY ./apps/surgery/libs/seg/requirements.txt seg.txt
 RUN pip install --no-cache-dir -r oad.txt
 RUN pip install --no-cache-dir -r seg.txt
 
-RUN git clone https://github.com/facebookresearch/detectron2
-RUN pip install -e /detectron2
+RUN git clone https://github.com/facebookresearch/detectron2 /detectron2_repo
+RUN pip install -e /detectron2_repo
 
 
 RUN git clone https://github.com/LStriving/slowfast.git
