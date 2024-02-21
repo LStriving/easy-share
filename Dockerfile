@@ -13,6 +13,9 @@ RUN pip install pillow==10.2.0
 
 
 COPY . /app
+# Install git
+RUN apt-get update && \
+    apt-get install -y git
 # Set up Git credentials with the personal access token
 RUN git config --global credential.helper store && \
     echo "https://${GITHUB_TOKEN}@github.com" > ~/.git-credentials
