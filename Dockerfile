@@ -42,7 +42,7 @@ RUN git clone https://github.com/LStriving/slowfast.git /slowfast
 RUN pip install -e /slowfast
 ENV PYTHONPATH=/slowfast/slowfast:$PYTHONPATH
 RUN python /slowfast/setup.py build develop
-
+RUN pip install opencv-python-headless
 # Set the working directory
 WORKDIR /app
 COPY . /app
