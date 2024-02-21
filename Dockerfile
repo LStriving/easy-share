@@ -30,12 +30,12 @@ RUN apt-get update && \
     apt-get install -y build-essential
 RUN pip install 'git+https://github.com/facebookresearch/fvcore.git' 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 RUN pip install --no-cache-dir -r /app/apps/surgery/libs/seg/requirements.txt
-RUN pip install -e /app/apps/surgery/libs/external/slowfast
 RUN pip install -e /app/apps/surgery/libs/external/detectron2_repo
+RUN pip install -e /app/apps/surgery/libs/external/slowfast
 RUN conda install ffmpeg=4.3
 # buiid slowfast    
 ENV PYTHONPATH=/app/apps/surgery/libs/external/slowfast/slowfast:$PYTHONPATH
-RUN python setup.py build develop
+RUN python /app/apps/surgery/libs/external/slowfast/setup.py build develop
 
 # Install git-lfs
 RUN apt-get update && \

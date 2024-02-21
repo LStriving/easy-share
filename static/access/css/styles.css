@@ -229,11 +229,3 @@ button:hover {
   -moz-box-shadow: none;
   box-shadow: none;
 }
-
-#navigation{
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: black;
-  color:white;
-}

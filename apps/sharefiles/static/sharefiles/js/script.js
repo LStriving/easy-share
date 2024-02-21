@@ -3,6 +3,7 @@ const DONE = 2;
 const CHUNK_SIZE = 5;
 const WAIT_MERGE = 3;
 var uploaded_chunks_num = {};
+var filename = "";
 
 // Function to get CSRF token from cookies
 function getCSRFToken() {
@@ -327,6 +328,7 @@ function create_file_instance(hash) {
 $(document).ready(function () {
   $("#upload-file input").change(function () {
     $("#upload-file p").text(this.files.length + " file(s) selected");
+    filename = this.files[0].name;
   });
 });
 

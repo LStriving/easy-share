@@ -36,6 +36,7 @@ $(document).ready(function () {
         displayPagination(data, folderId, page);
       },
       error: function (error) {
+        showNotification("error", "Error", "An error occurred");
         console.error(error);
       },
     });
