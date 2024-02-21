@@ -9,7 +9,7 @@ from EasyShare.settings.base import GPU_DEVICE, OAD_OUTPUT_DIR
 from apps.sharefiles.utils import Django_path_get_path
 from .models import Task
 from .utils import get_free_gpu_memory
-from libs.oad.tools.frames_extraction import extract_frames
+from apps.surgery.libs.oad.tools.frames_extraction import extract_frames
 
 @app.task
 async def infer_jobs(task_id, video_path):
