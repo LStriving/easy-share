@@ -20,16 +20,14 @@ RUN apt-get update && \
 RUN git config --global credential.helper store && \
     echo "https://${GITHUB_TOKEN}@github.com" > ~/.git-credentials
 
-# Install git-lfs
-RUN apt-get update && \
-    apt-get install -y git-lfs && \
-    git lfs install
-RUN git lfs pull
 
 # pytorch project requirements
 RUN pip install --no-cache-dir -r /app/apps/surgery/libs/oad/requirements.txt
 RUN pip install 'git+https://github.com/facebookresearch/fairscale'
 RUN pip install "git+https://github.com/facebookresearch/pytorchvideo.git"
+# Install necessary build tools
+RUN apt-get update && \
+    apt-get install -y build-essential
 RUN pip install 'git+https://github.com/facebookresearch/fvcore.git' 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 RUN pip install --no-cache-dir -r /app/apps/surgery/libs/seg/requirements.txt
 RUN pip install -e /app/apps/surgery/libs/external/slowfast
@@ -39,6 +37,11 @@ RUN conda install ffmpeg=4.3
 ENV PYTHONPATH=/app/apps/surgery/libs/external/slowfast/slowfast:$PYTHONPATH
 RUN python setup.py build develop
 
+# Install git-lfs
+RUN apt-get update && \
+    apt-get install -y git-lfs && \
+    git lfs install
+RUN git lfs pull
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
