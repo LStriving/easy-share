@@ -4,6 +4,8 @@ version: "3"
 services:
   web:
     build: .
+    args:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
     volumes:
       - .:/app
       - ./media:/app/media

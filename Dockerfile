@@ -1,3 +1,4 @@
+ARG GITHUB_TOKEN
 # Use the official PyTorch image with GPU support
 FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
@@ -12,6 +13,9 @@ RUN pip install pillow==10.2.0
 
 
 COPY . /app
+# Set up Git credentials with the personal access token
+RUN git config --global credential.helper store && \
+    echo "https://${GITHUB_TOKEN}@github.com" > ~/.git-credentials
 
 # Install git-lfs
 RUN apt-get update && \
