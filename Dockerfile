@@ -20,10 +20,11 @@ RUN apt-get update && \
 RUN git lfs pull
 
 # pytorch project requirements
-RUN pip install --no-cache-dir -r apps/surgery/libs/oad/requirements.txt
-RUN pip install --no-cache-dir -r apps/surgery/libs/seg/requirements.txt
-RUN pip install -e apps/surgery/libs/external/slowfast
-RUN pip install -e apps/surgery/libs/external/detectron2_repo
+RUN pip install --no-cache-dir -r /app/apps/surgery/libs/oad/requirements.txt
+RUN pip install 'git+https://github.com/facebookresearch/fvcore.git' 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+RUN pip install --no-cache-dir -r /app/apps/surgery/libs/seg/requirements.txt
+RUN pip install -e /app/apps/surgery/libs/external/slowfast
+RUN pip install -e /app/apps/surgery/libs/external/detectron2_repo
 RUN conda install ffmpeg=4.3
 
 # Set environment variables
