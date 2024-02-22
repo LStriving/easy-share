@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  var crr_page = 1;
   // Function to load folders
   function loadFolders(currentPage = 1) {
     $.ajax({
@@ -22,6 +23,7 @@ $(document).ready(function () {
         });
         // Display pagination links
         displayPagination(data, currentPage);
+        return currentPage;
       },
       error: function (error) {
         //get status code from error
@@ -39,14 +41,14 @@ $(document).ready(function () {
     $(".pagination-link").on("click", function (e) {
       e.preventDefault();
       var nextPage = $(this).attr("page");
-      loadFolders(parseInt(nextPage));
+      crr_page = loadFolders(parseInt(nextPage));
     });
   }
 
   var folderId = window.location.pathname.split("/").pop();
   var page = 1; // Default to the first page
   // Load folders on page load
-  loadFolders(page);
+  crr_page = loadFolders(page);
 
   // Show create folder modal on button click
   $("#create-folder-btn").on("click", function () {
@@ -73,6 +75,7 @@ $(document).ready(function () {
 
   function createFolder(folderName) {
     if (folderName) {
+      // get current page
       $.ajax({
         url: "/easyshare/folder/user", // Replace with your actual DRF endpoint
         method: "POST",
@@ -80,14 +83,40 @@ $(document).ready(function () {
         beforeSend: function (xhr, settings) {
           xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
         },
-        success: function () {
-          $("#create-folder-modal").hide();
-          loadFolders(); // Reload folders after creation
-          showNotification("success", "Success", "Folder created successfully");
+        statusCode: {
+          200: function () {
+            crr_page = loadFolders(crr_page);
+            showNotification(
+              "success",
+              "Success",
+              "Folder created successfully"
+            );
+          },
+          201: function () {
+            showNotification(
+              "info",
+              "Info",
+              "Folder name exists, please choose another name"
+            );
+          },
+          400: function () {
+            showNotification("error", "Error", "Folder name cannot be empty");
+          },
+          403: function () {
+            showNotification(
+              "error",
+              "Error",
+              "You are not authorized to create a folder"
+            );
+            window.location.href = "/";
+          },
         },
         error: function (error) {
           showNotification("error", "Error", "An error occurred");
           console.error(error);
+        },
+        complete: function () {
+          $("#create-folder-modal").hide();
         },
       });
     }
@@ -123,7 +152,7 @@ $(document).ready(function () {
       },
       success: function () {
         confirmDialog.style.display = "none";
-        loadFolders(page); // After deletion, reload the files
+        crr_page = loadFolders(crr_page); // After deletion, reload the files
         showNotification("success", "Success", "Folder deleted successfully");
       },
       error: function (error) {

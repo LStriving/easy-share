@@ -51,10 +51,23 @@ class FolderList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         # check if the folder name is unique
         name = serializer.validated_data['name']
+        print(name)
         if Folder.objects.filter(user=self.request.user,name=name).exists():
+            print('Folder name should be unique!')
             return Response(data={'message':'Folder name should be unique!'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_201_CREATED)
+        print('Creating folder...')
         serializer.save(user=self.request.user)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response = self.perform_create(serializer)
+        if response is not None:
+            return response
+        headers = self.get_success_headers(serializer.data)
+        print(f"headers:{headers}")
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
         
 class FolderInfo(generics.RetrieveAPIView):
     '''
