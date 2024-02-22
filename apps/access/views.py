@@ -50,6 +50,7 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
 
 # TODO: not working
 class CustomLoginView(LoginView):
+    template_name = '/login.html'
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, 'Login successful.')
@@ -172,8 +173,8 @@ def register_view(request):
             login(request,user)
             return redirect('login')
         else:
-            ...
+            print(form.errors.as_text())
     else:
         form = SignUpForm()
     
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'register.html', {'error': form.errors.as_json()})

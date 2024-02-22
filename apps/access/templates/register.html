@@ -3,7 +3,6 @@
       <h1>Intraoperative Navigation </h1>
       <hr></hr>
       <h2 >Register</h2>
-
       <form method="post" action="{% url 'register' %}">
         {% csrf_token %}
         <label id="icon" for="name"><i class="icon-envelope"></i></label>
@@ -45,4 +44,20 @@
         <p></p>
       </form>
     </div>
+    <script>
+      showError();
+      function showError() {
+        console.log("{{ error|escapejs }}");
+        var data = JSON.parse("{{ error|escapejs }}");
+        //{"username": [{"message": "A user with that username already exists.", "code": "unique"}], "email": [{"message": "User with this Email already exists.", "code": "unique"}]}
+        error_msg = "";
+        for (var key in data) {
+          if (data.hasOwnProperty(key)) {
+            var error = data[key];
+            var message = error[0].message;
+            showNotification("error", key, message);
+          }
+        }
+      } 
+    </script>
 {% endblock %}
