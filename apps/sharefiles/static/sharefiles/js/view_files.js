@@ -129,13 +129,23 @@ $(document).ready(function () {
   });
   // add task
   $("#add-task").on("click", function () {
+    $("#add-task-modal").show();
+  });
+  // close the modal
+  $("#cancel-add-task").on("click", function () {
+    $("#add-task-modal").hide();
+    $("#task-name").val("");
+  });
+  function createTask() {
     // send a post request to the server to add a task
     var fileId = contextMenu.dataset.Id;
+    // get task name from the input field
+    var taskName = $("#task-name").val();
     // send request
     $.ajax({
       url: "/surgery/add_task",
       method: "POST",
-      data: { file_id: fileId },
+      data: { file_id: fileId, task_name: taskName },
       beforeSend: function (xhr, settings) {
         xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
       },
@@ -158,6 +168,21 @@ $(document).ready(function () {
         console.error(error);
         showNotification("error", "Error", "An error occurred");
       },
+      // clear the input field and hide the modal
+      complete: function () {
+        $("#task-name").val("");
+        $("#add-task-modal").hide();
+      },
     });
+  }
+  // add task button
+  $("#add-task-btn").on("click", function () {
+    createTask();
+  });
+  // keypress event for the task name input field
+  $("#task-name").on("keypress", function (e) {
+    if (e.which === 13) {
+      createTask();
+    }
   });
 });

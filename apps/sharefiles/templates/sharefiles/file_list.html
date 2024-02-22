@@ -66,7 +66,7 @@
 
 
 {% comment %} confirm dialog for Delete {% endcomment %}
-<div class="confirm-delete testbox" style="display: none">
+<div class="confirm-delete testbox center_box" style="display: none">
   <h2>Confirm Delete</h2>
   <hr />
   <p>
@@ -74,6 +74,17 @@
   </p>
   <button type="button" class="cancel-delete">Cancel</button>
   <button class="confirm-delete-btn">Delete</button>
+</div>
+
+<div id="add-task-modal" style="display: none" class="testbox center_box">
+  <h2>Create Task</h2>
+  <hr />
+  <div id="task-name-form">
+    <label for="task-name">Task Name </label>
+    <input type="text" id="task-name" required />
+  </div>
+  <button type="button" id="cancel-add-task">Cancel</button>
+  <button id="add-task-btn">Create</button>
 </div>
 
 {% endblock %}

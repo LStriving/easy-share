@@ -86,6 +86,7 @@ $(document).ready(function () {
           showNotification("success", "Success", "Folder created successfully");
         },
         error: function (error) {
+          showNotification("error", "Error", "An error occurred");
           console.error(error);
         },
       });

@@ -38,7 +38,7 @@ body div:not(#upload-file) {
     opacity: 0;
 }
 
-#upload-file  button {
+#upload-file button {
     margin: 0;
     color: white; /* Dark text color */
     background: rgb(58,87,175); /* Light background color */
@@ -68,9 +68,6 @@ body div:not(#upload-file) {
 }
 
 .confirm-delete{
-    position: absolute;
-    top: 40%;
-    left: 40%;
     margin: 0;
 }
 .confirm-delete p {
@@ -79,4 +76,22 @@ body div:not(#upload-file) {
     font-size: large;
     margin-top: 25px;
     margin-bottom: 25px;
+}
+
+.center_box {
+    position: absolute;
+    top: 40%;
+    left: 40%;
+    margin: 0;
+}
+
+.center_box button{
+    margin-left: 14%;
+    margin-right: 10%;
+    width: 25%;
+    z-index: 100;
+}
+.center_box label{
+    margin-left: 10px;
+    margin-right: 10px;
 }
