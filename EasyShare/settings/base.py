@@ -38,7 +38,7 @@ DEBUG = True
 CORS_ORIGIN_ALLOW_ALL = True
 
 ALLOWED_HOSTS = ['luohailin.cn', 'localhost','127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ['http://luohailin.cn:4080']
+CSRF_TRUSTED_ORIGINS = ['http://luohailin.cn:4080','http://luohailin.cn:4070',r'http://luohailin.cn:\d+/']
 # Daphne
 ASGI_APPLICATION = 'EasyShare.asgi.application'
 # Application definition
@@ -166,8 +166,34 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'apps/sharefiles/static'),
 ]
 
-OAD_OUTPUT_DIR = os.path.join(BASE_DIR, 'media/oad_output')
+OAD_INPUNT_DIR = os.path.join(BASE_DIR, 'media/input_data/Surgery/') # should be the same as in the OAD model
+EXTRACT_OUTPUT_DIR = os.path.join(OAD_INPUNT_DIR,'frames') # should be the same as in the OAD model
+TARGET_DIR = os.path.join(OAD_INPUNT_DIR,'targets') # should be the same as in the OAD model
+# settings for video prediction result
+OAD_OUTPUT_URL = '/media/oad_output/'
+OAD_FILE_OUTPUT_URL = '/media/oad_result/'
+SEG_IMG_OUTPUT_URL = '/media/seg_img/'
+SEG_VIDEO_OUTPUT_URL = '/media/seg_video/'
+SEG_FILE_OUTPUT_URL = '/media/seg_result/'
+
+OAD_DIR = os.path.join(BASE_DIR, '/apps/surgery/libs/oad')
+OAD_CHECKPOINT = os.path.join(OAD_DIR, 'ckpt/checkpoint_epoch_00018.pyth')
+OAD_OUTPUT_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL)
+OAD_OUTPUT_NPY_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL + 'npy')
+OAD_FILE_OUTPUT_DIR = os.path.join(BASE_DIR, OAD_FILE_OUTPUT_URL)
+SEG_IMG_OUTPUT_DIR = os.path.join(BASE_DIR, SEG_IMG_OUTPUT_URL)
+SEG_VIDEO_OUTPUT_DIR = os.path.join(BASE_DIR, SEG_VIDEO_OUTPUT_URL)
+SEG_FILE_OUTPUT_DIR = os.path.join(BASE_DIR, SEG_FILE_OUTPUT_URL)
+FILE_1_POSTFIX = '_interact_1.txt'
+FILE_8_POSTFIX = '_interact_8.txt'
+PRE_FILE_POSTFIX = '_pro.txt'
+PRE_DUR_FILE_POSTFIX = "_dur.txt"
+
 GPU_DEVICE = 0
+MAX_EXECUTING_TASK_AT_ONCE = 1
+
+# channels
+MAX_CONCURRENT_REQUESTS = 4
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -195,5 +221,10 @@ app.conf.beat_schedule = {
     'remove-30days-tmp-file': {
         'task': 'tasks.remove_tmp',
         'schedule': crontab(minute=0, hour=0)
+    },
+    # Executes every 5 minutes
+    'model-prediction-task': {
+        'task': 'tasks.get_task_n_work',
+        'schedule': crontab(minute='*/5')
     },
 }

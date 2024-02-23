@@ -157,6 +157,7 @@ def register_view(request):
             except User.DoesNotExist:
                 pass
             try:
+                # TODO: set timeout or delay
                 send_mail(
                     'Welcome to EasyShare',
                     f'Congratulations, {username}!\n' 

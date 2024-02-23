@@ -1,0 +1,538 @@
+{% extends './surgery_base.html' %} {% block content %} {% load static %}
+<!-- speaker icon -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+/>
+<link rel="stylesheet" href="{% static "surgery/css/surgery.css" %}">
+<script src="{% static 'access/js/jquery.js' %}"></script>
+<script src="{% static 'surgery/js/surgery.js' %}"></script>
+
+<!-- Information Part (Left Side) -->
+<div class="app">
+  <div class="information">
+    <div class="case-infomation">
+      <h3>
+        Case Information
+        <button class="case-btn">Hide</button>
+      </h3>
+      <!-- Form for manual input -->
+      <form id="surgeryForm">
+        <div class="form-item">
+          <label for="surgeon">surgeon </label>
+          <input
+            type="text"
+            id="surgeon"
+            name="surgeon"
+            placeholder="Enter surgeon"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="patientID">Patient ID </label>
+          <input
+            type="text"
+            id="patientID"
+            name="patientID"
+            placeholder="Enter Patient ID"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="name">Name </label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter Name"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="age">Age </label>
+          <input
+            type="text"
+            id="age"
+            name="age"
+            placeholder="Enter Age"
+            required
+          />
+        </div>
+        <div class="form-item">
+          <label for="gender">Gender </label>
+          <select id="gender" name="gender" required>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-item-btn">
+          <button id="submit-btn" type="submit">Submit</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="phase-recognition">
+      <h3>Phase Recognition</h3>
+      <div class="recog">
+        <div class="recog-cls" id="cls1">
+          <div class="title">Corneal incision by 15 degree keratome</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls2">
+          <div class="title">Corneal incision by 3.2 mm keratome</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Carbachol injection</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">OVDs injection</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Gonioscopy</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Goniotomy</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">OVDs irrigation/aspiration</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Would closure</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+        <div class="recog-cls" id="cls3">
+          <div class="title">Idle</div>
+          <div class="target"></div>
+          <div class="prob">
+            <div class="bar"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Horizontal bars for action probabilities go here -->
+    </div>
+
+    <div class="summary-report">
+      <h3>Summary Report</h3>
+      <div class="recog">
+        <div id="wholeProcessDuration" class="report-cls">
+          <div class="action">
+            <p>Duration</p>
+          </div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action1Duration" class="report-cls">
+          <div class="action">Corneal incision by 15 degree keratome</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action2Duration" class="report-cls">
+          <div class="action">Corneal incision by 3.2 mm keratome</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action3Duration" class="report-cls">
+          <div class="action">Carbachol injection</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action4Duration" class="report-cls">
+          <div class="action">OVDs injection</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action5Duration" class="report-cls">
+          <div class="action">Gonioscopy</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action6Duration" class="report-cls">
+          <div class="action">Goniotomy</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action7Duration" class="report-cls">
+          <div class="action">OVDs irrigation/aspiration</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+        <div id="action8Duration" class="report-cls">
+          <div class="action">Would closure</div>
+          <div class="time">
+            <div id="minu" class="time-block">0</div>
+            <span> min </span>
+            <div id="sec" class="time-block">0</div>
+            <span> s</span>
+          </div>
+        </div>
+      </div>
+      <!-- Accumulated time for different actions goes here -->
+    </div>
+  </div>
+
+  <div class="video_n_timeline">
+    <!-- Video Part (Upper Right Side) -->
+    <div class="video">
+      <div id="icon-container"></div>
+      <div class="video-container">
+        <canvas id="backgroundCanvas"> Video Source Not Available</canvas>
+        <video id="surgeryVideo" onclick="playPause(this)">
+          <!-- pay attention to platform for slash -->
+          <source src="{{result_video}}" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div>
+
+      <div id="caseInfoDiv"></div>
+      <div id="phaseInfoDiv"></div>
+      <audio id="alarm-1" preload="auto">
+        <source
+          src="{% static '/surgery/audio/mixkit-atm-cash-machine-key-press-2841.wav'%}"
+          type="audio/wav"
+        />
+        Your browser does not support the audio tag.
+      </audio>
+      <audio id="alarm-2" preload="auto">
+        <source
+          src="{% static '/surgery/audio/A3TMECN-beep.mp3'%}"
+          type="audio/wav"
+        />
+        Your browser does not support the audio tag.
+      </audio>
+      <!-- <div id="customControls">
+              <button id="playPauseButton">Play</button>
+          </div> -->
+    </div>
+
+    <!-- Timeline Part (Bottom Right Side) -->
+    <div class="timeline">
+      <div class="title">
+        <h3>Timeline</h3>
+        <div class="color-bar-box">
+          <div>0.0</div>
+          <div class="color-bar"></div>
+          <div>1.0</div>
+        </div>
+      </div>
+      <div class="timeline-box">
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Corneal incision by 15 degree keratome</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Corneal incision by 3.2 mmkeratome</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Carbachol injection</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">OVDs injection</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Gonioscopy</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Goniotomy</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">OVDs irrigation/aspiration</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Would closure</div>
+          <div class="blocks"></div>
+        </div>
+        <div class="cls-line" id="cls1">
+          <div class="cls-title">Idle</div>
+          <div class="blocks"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Get elements
+    const report_actions = document.querySelectorAll(".report-cls .time");
+    const phase_actions_target =
+      document.querySelectorAll(".recog-cls .target");
+    const phase_actions_bar = document.querySelectorAll(
+      ".recog-cls .prob .bar"
+    );
+    const videoElement = document.getElementById("surgeryVideo");
+
+    // Function to update predictions based on current video time
+    function updatePredictions(pred, currentTime, duration) {
+      pred_sorted = [];
+      pred = pred.split(" ");
+      for (let i = 0; i < idx_map.length; i++) {
+        pred_sorted.push(parseFloat(pred[idx_map[i][1]]));
+      }
+      for (let i = 0; i < pred_sorted.length; i++) {
+        let target = phase_actions_target[i];
+        let bar = phase_actions_bar[i];
+        let prob = pred_sorted[i];
+
+        if (prob > 0.5) {
+          target.style.backgroundColor = "green";
+        } else {
+          target.style.backgroundColor = "red";
+        }
+        bar.style.width = `${prob * 100}%`;
+      }
+    }
+    // Function to fetch data from file, parse it, and store in the provided array
+    function fetchAndStoreData(filePath) {
+      return fetch(filePath)
+        .then((response) => response.text())
+        .then((data) => {
+          return parseFrames(data); // Return frames
+        })
+        .catch((error) =>
+          console.error(`Error reading file ${filePath}:`, error)
+        );
+    }
+    function fetchAndStorePred(filePath) {
+      return fetch(filePath)
+        .then((response) => response.text())
+        .then((data) => {
+          return parsePred(data); // Return frames
+        })
+        .catch((error) =>
+          console.error(`Error reading file ${filePath}:`, error)
+        );
+    }
+
+    Promise.all([
+      fetchAndStoreData({{file_345}}),
+      fetchAndStoreData({{file_910}}),
+      fetchAndStorePred({{pred_pro}}),
+      fetchAndStorePred({{pred_dur}}),
+    ]).then((results) => {
+      const data1 = results[0];
+      const data2 = results[1];
+      const pred = results[2];
+      const pred_dur = results[3];
+
+      // Check if metadata is already loaded
+      if (videoElement.readyState >= 2) {
+        // Metadata is already loaded, add event listener for timeupdate immediately
+        registerTimeUpdateListener();
+      } else {
+        // Add event listener to handle when the video metadata is loaded
+        videoElement.addEventListener("loadedmetadata", function () {
+          console.log("Video metadata loaded");
+          registerTimeUpdateListener();
+        });
+      }
+
+      // Function to register timeupdate event listener
+      function registerTimeUpdateListener() {
+        // Add event listener for updating predictions during video playback
+        videoElement.addEventListener("timeupdate", function () {
+          var cur_dur = getCurrent(
+            pred_dur,
+            videoElement.currentTime,
+            videoElement.duration
+          );
+          var cur_pre = getCurrent(
+            pred,
+            videoElement.currentTime,
+            videoElement.duration
+          );
+          // Update summary report
+          updateSummaryReport(
+            cur_dur,
+            videoElement.currentTime,
+            pred_dur.length / videoElement.duration
+          );
+          updatePredictions(
+            cur_pre,
+            videoElement.currentTime,
+            videoElement.duration
+          );
+          updatePredictionOnVideo(
+            data1,
+            data2,
+            cur_pre,
+            cur_dur,
+            videoElement.currentTime,
+            pred_dur.length / videoElement.duration
+          );
+          updateTimeline(cur_pre, pred.length);
+        });
+      }
+    });
+
+    const surgeryForm = document.getElementById("surgeryForm");
+    surgeryForm.addEventListener("submit", function (event) {
+      event.preventDefault(); // prevent the form from submitting normally
+
+      // get the values of the form fields
+      var surgeon = document.getElementById("surgeon").value;
+      var patientID = document.getElementById("patientID").value;
+      var name = document.getElementById("name").value;
+      var age = document.getElementById("age").value;
+      var gender = document.getElementById("gender").value;
+
+      // create a div to hold the case information
+      var caseInfoDiv = document.getElementById("caseInfoDiv");
+
+      // increase the line height for readability
+      // create a p element to hold the time info
+      var timeInfo = document.createElement("p");
+      timeInfo.id = "timeInfo";
+      caseInfoDiv.appendChild(timeInfo);
+
+      caseInfoDiv.innerHTML = `
+            <p id="timeInfo"></p>
+            <p><strong>surgeon:</strong> ${surgeon}</p>
+            <p><strong>Patient ID:</strong> ${patientID}</p>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Age:</strong> ${age}</p>
+            <p><strong>Gender:</strong> ${gender}</p>
+            `;
+
+      caseInfoDiv.style.display = "block";
+
+      // add the case information div to the video div
+      var videoDiv = document.querySelector(".video");
+      videoDiv.appendChild(caseInfoDiv);
+      var now = new Date();
+      document.getElementById("timeInfo").innerHTML =
+        "<strong>CurrentTime:</strong> " +
+        now.toLocaleDateString() +
+        " " +
+        now.toLocaleTimeString();
+
+      // update the time info every second
+      setInterval(function () {
+        var now = new Date();
+        document.getElementById("timeInfo").innerHTML =
+          "<strong>CurrentTime:</strong> " +
+          now.toLocaleDateString() +
+          " " +
+          now.toLocaleTimeString();
+      }, 1000);
+    });
+
+    const colorBar = document.querySelector(".color-bar");
+    colorBar.style.background = `linear-gradient(to right, rgb(${item_color[0][0]}, ${item_color[0][1]}, ${item_color[0][2]}), rgb(${item_color[1][0]}, ${item_color[1][1]}, ${item_color[1][2]}))`;
+
+    const info_btn = document.querySelector(".case-btn");
+    info_btn.addEventListener("click", function () {
+      if (surgeryForm.style.display == "none") {
+        surgeryForm.style.display = "block";
+        info_btn.innerHTML = "Hide";
+      } else {
+        info_btn.innerHTML = "Show";
+        surgeryForm.style.display = "none";
+      }
+    });
+
+    // Function to update summary report based on current video time
+    function updateSummaryReport(pred_dur, currentTime, ratio) {
+      // Calculate durations for the whole process and different actions
+      const wholeProcessDuration = formatDuration(currentTime);
+      var current_dur = pred_dur;
+      var current_dur_array = current_dur.split(" ");
+      var current_dur_array_float = [];
+      var current_dur_array_float_sorted = [];
+      for (var i = 0; i < current_dur_array.length; i++) {
+        current_dur_array_float.push(
+          formatDuration(parseFloat(current_dur_array[i]) / ratio)
+        );
+      }
+      // current_dur_array_float_sorted[0] = current_dur_array_float[7];
+      current_dur_array_float_sorted[1] = current_dur_array_float[7];
+      current_dur_array_float_sorted[2] = current_dur_array_float[6];
+      current_dur_array_float_sorted[3] = current_dur_array_float[0];
+      current_dur_array_float_sorted[4] = current_dur_array_float[1];
+      current_dur_array_float_sorted[5] = current_dur_array_float[2];
+      current_dur_array_float_sorted[6] = current_dur_array_float[3];
+      current_dur_array_float_sorted[7] = current_dur_array_float[4];
+      current_dur_array_float_sorted[8] = current_dur_array_float[5];
+
+      for (let i = 1; i < report_actions.length; i++) {
+        let m = report_actions[i].querySelector("#minu");
+        let s = report_actions[i].querySelector("#sec");
+        m.innerHTML = current_dur_array_float_sorted[i][0];
+        s.innerHTML = current_dur_array_float_sorted[i][1];
+      }
+      report_actions[0].querySelector("#minu").innerHTML =
+        wholeProcessDuration[0];
+      report_actions[0].querySelector("#sec").innerHTML =
+        wholeProcessDuration[1];
+    }
+  });
+</script>
+{% endblock %}

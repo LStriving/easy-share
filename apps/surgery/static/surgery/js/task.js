@@ -59,8 +59,12 @@ $(document).ready(function () {
     return date.toLocaleDateString() + " " + time;
   }
   function getIconName(status) {
-    if (status === "doing") {
-      return "rocker_launch";
+    if (status === "doing" || status === "executing") {
+      return "rocket_launch";
+    } else if (status === "extracting frames") {
+      return "auto_awesome_motion";
+    } else if (status === "SEG inferring" || status === "OAD inferring") {
+      return "online_prediction";
     } else return status;
   }
   //get the task list

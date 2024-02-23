@@ -217,6 +217,14 @@ input[type="radio"]:checked,
     color: red
 }
 
+.icon-auto_awesome_motion {
+    color: green
+}
+
+.icon-online_prediction {
+    color: yellow
+}
+
 .w3-container {
     margin-left: 50px;
 }

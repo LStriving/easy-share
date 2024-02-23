@@ -74,6 +74,7 @@ SECRET_KEY=
 
 ```bash
 celery -A EasyShare worker
+celery -A EasyShare beat
 ```
 
 #### Deploy
@@ -88,7 +89,14 @@ celery -A EasyShare beat
 ## Installation for Docker
 
 ```bash
-GITHUB_TOKEN={your_personal_access_token} docker-compose build
+GITHUB_TOKEN={your_personal_access_token} docker-compose build --shm-size=16GB
+```
+
+### remote forward
+
+```bash
+# ssh -R remote_port:localhost:local_port ssh_server_hostname
+ssh -NfR 4999:localhost:3344 root@luohailin.cn -o ServerAliveInterval=60  # no shell and background
 ```
 
 ## User Manual
@@ -110,4 +118,6 @@ GITHUB_TOKEN={your_personal_access_token} docker-compose build
 - [x] lock redis cache for concurrent upload
 - [ ] Multiple upload
 - [ ] Prevent failed upload file from opening other sites from the users / Decrease the waiting time
-- [ ] Task Site
+- [x] Task Site
+- [ ] smarter way for loading model and calling predict
+- [ ] add hint for loading video

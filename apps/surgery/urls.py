@@ -8,4 +8,5 @@ urlpatterns = [
     path("add_task",view=views.add_task, name="add_task"),
     path(r"tasks",view=views.task_view, name="task"),
     path(r"task_list",view=views.TaskList.as_view(), name="task_list"),
+    path(r"file_result",view=views.result_view, name="result_view")
 ]
