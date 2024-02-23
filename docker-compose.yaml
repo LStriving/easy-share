@@ -46,7 +46,7 @@ services:
     restart: always
   celery-beat:
     build: .
-    command: celery -A EasyShare beat --loglevel=info
+    command: celery -A EasyShare beat --loglevel=info --logfile=log/celery-beat.log
     environment:
       - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
     volumes:
