@@ -39,13 +39,15 @@ RUN pip install -e /detectron2_repo
 
 
 RUN git clone https://github.com/LStriving/slowfast.git /slowfast
-RUN pip install -e /slowfast
 ENV PYTHONPATH=/slowfast/slowfast:$PYTHONPATH
-RUN python /slowfast/setup.py build develop
-RUN pip install opencv-python-headless
+WORKDIR /slowfast
+RUN python setup.py build develop
+RUN pip install opencv-python-headless 
+RUN pip install einops
 # Set the working directory
 WORKDIR /app
 COPY . /app
+ENV PYTHONPATH=/app/apps/surgery/libs/oad:$PYTHONPATH
 RUN git lfs pull
 
 # Set environment variables
