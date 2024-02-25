@@ -34,6 +34,8 @@ services:
   redis:
     image: redis:latest
     restart: always
+    volumes:
+      - ./redis:/redisdata
   celery:
     build: .
     command: celery -A EasyShare worker --logfile=log/celery.log -l info --pidfile= --loglevel=info

@@ -159,9 +159,9 @@ def register_view(request):
             try:
                 # TODO: set timeout or delay
                 send_mail(
-                    'Welcome to EasyShare',
+                    'Welcome to Intraoperative Navigation',
                     f'Congratulations, {username}!\n' 
-                    'You have successfully registered an account on EasyShare!',
+                    'You have successfully registered an account on Intraoperative Navigation!',
                     from_email=EMAIL_HOST_USER,
                     recipient_list=[email],
                     )

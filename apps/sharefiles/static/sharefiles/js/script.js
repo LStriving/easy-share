@@ -461,7 +461,7 @@ async function handleUpload() {
       showNotification(
         "error",
         "Error",
-        "Upload failed, please try again later" + error
+        "Upload failed, please try again later. " + error
       );
       // Handle errors during MD5 calculation
       console.error("Error during MD5 calculation:", error);
