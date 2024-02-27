@@ -4,6 +4,7 @@ const CHUNK_SIZE = 5;
 const WAIT_MERGE = 3;
 var uploaded_chunks_num = {};
 var filename = "";
+var num_uploading_files = 0;
 
 // Function to get CSRF token from cookies
 function getCSRFToken() {
@@ -171,7 +172,7 @@ function calculate() {
   });
 }
 
-function check_upload_status(hash) {
+function check_upload_status(hash, folder_id) {
   return new Promise((resolve, reject) => {
     // create a XMLHttpRequest object
     var xhr = new XMLHttpRequest();
@@ -192,7 +193,7 @@ function check_upload_status(hash) {
             "Info",
             "Merging chunks, please don't close the page"
           );
-          const merge_status = await mergeChunks(hash);
+          const merge_status = await mergeChunks(hash, folder_id);
           if (merge_status === DONE) {
             resolve(DONE);
           } else if (merge_status === WAIT_MERGE) {
@@ -254,11 +255,14 @@ function parsePartialResponse(responseText) {
   return uploaded_chunks;
 }
 
-function mergeChunks(hash) {
+function mergeChunks(hash, folder_id) {
   return new Promise((resolve, reject) => {
     //send a request to merge the chunks when the upload is complete
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/easyshare/merge_chunks?md5=" + hash);
+    xhr.open(
+      "GET",
+      `/easyshare/merge_chunks?md5=${hash}&folder_id=${folder_id}`
+    );
     xhr.setRequestHeader("X-CSRFToken", csrftoken);
     xhr.onload = function () {
       if (xhr.status == 200) {
@@ -370,6 +374,7 @@ async function handleUpload() {
 
   calculate()
     .then(async (md5_value) => {
+      num_uploading_files += 1;
       document.getElementById("loading-msg").textContent =
         "Calculated MD5 hash";
       // display progress bar
@@ -377,7 +382,7 @@ async function handleUpload() {
       // Successfully calculated MD5 hash, proceed with the next steps
       console.log("MD5 hash calculated:", md5_value);
       $("upload-file-name").textContent = file.name;
-      var current_status = await check_upload_status(md5_value);
+      var current_status = await check_upload_status(md5_value, folder_id);
 
       document.getElementById("preloader").style.display = "none";
       $("body div:not(#preloader)").css("filter", "blur(0px)");
@@ -414,7 +419,7 @@ async function handleUpload() {
             folder_id
           );
         }
-        result = await mergeChunks(md5_value);
+        result = await mergeChunks(md5_value, folder_id);
         if (result !== DONE && result !== WAIT_MERGE) {
           // partially uploaded
           continue;
@@ -423,7 +428,7 @@ async function handleUpload() {
           current_status = DONE;
         }
 
-        current_status = await check_upload_status(md5_value);
+        current_status = await check_upload_status(md5_value, folder_id);
       }
 
       if (current_status === DONE) {
@@ -434,8 +439,11 @@ async function handleUpload() {
             "file instance created";
           // show success message
           showNotification("success", "Success!", "Upload Success!");
-          // reload the page
-          location.reload();
+          // reload the page only when all the files are uploaded
+          num_uploading_files -= 1;
+          if (num_uploading_files === 0) {
+            location.reload();
+          }
         } else {
           document.getElementById("loading-msg").textContent =
             "File instance creation failed";
