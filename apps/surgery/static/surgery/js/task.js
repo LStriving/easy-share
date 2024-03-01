@@ -10,12 +10,14 @@ $(document).ready(function () {
         //clear the table
         $(".row").empty();
         if (result.length === 0) {
-          $("#task-body").append("<p>No tasks</p>");
+          $("#task-body").append(
+            `<div class="row"><input type="radio" name="expand" /><span class="cell" data-label="task_result_url">No tasks</span></div>`
+          );
         }
         //append the result to the table
         result.forEach(function (item) {
           $("#task-body").after(`
-          <div class="row">
+          <div class="row" data-task-id="${item.id}">
               <input type="radio" name="expand" />
               <span class="cell primary" data-label="file">${item.file}</span>
               <span class="cell" data-label="task_name">${
@@ -71,4 +73,64 @@ $(document).ready(function () {
   getTaskList();
   //refresh the task list every 10 seconds
   //   setInterval(getTaskList, 10000);
+
+  const contextMenu = document.querySelector(".wrapper");
+  // Handle right-click events
+  $(document).on("contextmenu", ".row", function (e) {
+    e.preventDefault();
+    // get the task id and task name from data-label
+    var task_id = $(this).data("task-id");
+    var task_name = $(this).find("[data-label=task_name]").text();
+    console.log("Right-clicked on task name: ", task_name);
+    showContextMenu(e, contextMenu, task_id, task_name);
+  });
+
+  const confirmDialog = document.getElementsByClassName("confirm-delete")[0];
+  $("#delete-task").on("click", function () {
+    // display the confirm dialog
+    confirmDialog.style.display = "block";
+    var taskName = contextMenu.dataset.Name;
+    const taskNameElement = document.getElementById("delete-task-name");
+    taskNameElement.innerHTML = taskName;
+  });
+
+  $("#confirm-delete-btn").on("click", function () {
+    var taskId = contextMenu.dataset.Id;
+    // Implement the logic to delete the file with fileId
+    $.ajax({
+      url: `/surgery/remove_task/${taskId}`,
+      method: "DELETE",
+      beforeSend: function (xhr, settings) {
+        xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+      },
+      statusCode: {
+        204: function () {
+          confirmDialog.style.display = "none";
+          showNotification("success", "Success", "Task deleted");
+          getTaskList();
+        },
+        400: function () {
+          confirmDialog.style.display = "none";
+          showNotification(
+            "warning",
+            "Warning",
+            "Unable to delete a launching task"
+          );
+        },
+        404: function () {
+          confirmDialog.style.display = "none";
+          showNotification("error", "Error", "Task not found");
+        },
+        500: function () {
+          confirmDialog.style.display = "none";
+          showNotification("error", "Error", "An error occurred");
+        },
+      },
+      error: function (error) {
+        confirmDialog.style.display = "none";
+        console.error(error);
+        showNotification("error", "Error", "An error occurred");
+      },
+    });
+  });
 });

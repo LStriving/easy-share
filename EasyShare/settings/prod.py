@@ -1,5 +1,6 @@
 from .base import *
-
+# enable oad
+os.environ.setdefault('OAD_ENABLE', '1')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','EasyShare.settings.prod')
 
 CORS_ALLOW_ALL_ORIGINS = True

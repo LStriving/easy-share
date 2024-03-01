@@ -2,23 +2,13 @@ const CHUNK_FREE = 1;
 const DONE = 2;
 const CHUNK_SIZE = 5;
 const WAIT_MERGE = 3;
+const LACK_CHUNKS = 4;
+const PERMISSION_DENIED = 6;
 var uploaded_chunks_num = {};
 var filename = "";
 var num_uploading_files = 0;
 
 // Function to get CSRF token from cookies
-function getCSRFToken() {
-  var csrfToken = null;
-  var cookies = document.cookie.split(";");
-  for (var i = 0; i < cookies.length; i++) {
-    var cookie = cookies[i].trim();
-    if (cookie.startsWith("csrftoken=")) {
-      csrfToken = cookie.substring("csrftoken=".length, cookie.length);
-      break;
-    }
-  }
-  return csrfToken;
-}
 
 $(document).ready(function () {
   $("form input").change(function () {
@@ -188,6 +178,7 @@ function check_upload_status(hash, folder_id) {
         } else if (xhr.status == 202) {
           resolve(WAIT_MERGE);
         } else if (xhr.status == 200) {
+          // ALL chunks are uploaded
           showNotification(
             "info",
             "Info",
@@ -198,6 +189,10 @@ function check_upload_status(hash, folder_id) {
             resolve(DONE);
           } else if (merge_status === WAIT_MERGE) {
             resolve(WAIT_MERGE);
+          } else if (merge_status === null) {
+            resolve(null);
+          } else if (merge_status === PERMISSION_DENIED) {
+            resolve(PERMISSION_DENIED);
           } else {
             resolve(parsePartialResponse(merge_status));
           }
@@ -274,6 +269,15 @@ function mergeChunks(hash, folder_id) {
       } else if (xhr.status == 206) {
         console.log(xhr.responseText);
         resolve(xhr.responseText);
+      } else if (xhr.status == 500 || xhr.status == 503) {
+        showNotification("error", "Server error", "Please try again later");
+        reject(new Error("Server error"));
+      } else if (xhr.status == 404) {
+        showNotification("error", "Error", "Folder not found");
+        resolve(null);
+      } else if (xhr.status == 403) {
+        showNotification("error", "Error", "Permission denied");
+        resolve(PERMISSION_DENIED);
       } else {
         console.error("Chunks merged failed");
         reject(new Error("Chunks merged failed"));
@@ -383,14 +387,23 @@ async function handleUpload() {
       console.log("MD5 hash calculated:", md5_value);
       $("upload-file-name").textContent = file.name;
       var current_status = await check_upload_status(md5_value, folder_id);
-
       document.getElementById("preloader").style.display = "none";
       $("body div:not(#preloader)").css("filter", "blur(0px)");
-      showNotification("info", "Info", "Start uploading");
+      if (
+        current_status !== DONE &&
+        current_status !== WAIT_MERGE &&
+        current_status !== PERMISSION_DENIED
+      ) {
+        showNotification("info", "Info", "Start uploading");
+      }
       // partially uploaded
       let uploaded_chunks = [];
       var result = null;
-      while (current_status !== DONE && current_status !== WAIT_MERGE) {
+      while (
+        current_status !== DONE &&
+        current_status !== WAIT_MERGE &&
+        current_status !== PERMISSION_DENIED
+      ) {
         uploaded_chunks = [];
         if (current_status != null) {
           uploaded_chunks = current_status;
@@ -427,6 +440,10 @@ async function handleUpload() {
         if (result === DONE) {
           current_status = DONE;
         }
+        if (result === PERMISSION_DENIED) {
+          current_status = PERMISSION_DENIED;
+          break;
+        }
 
         current_status = await check_upload_status(md5_value, folder_id);
       }
@@ -458,7 +475,7 @@ async function handleUpload() {
           "Message",
           "Merging chunks, please refresh the page later"
         );
-      } else {
+      } else if (current_status !== PERMISSION_DENIED) {
         console.error("Unknown error, please try again later.");
       }
       endProgressBar(md5_value);

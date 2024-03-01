@@ -83,6 +83,7 @@ body div:not(#upload-file) {
     top: 40%;
     left: 40%;
     margin: 0;
+    z-index: 1000;
 }
 
 .center_box button{
@@ -94,4 +95,23 @@ body div:not(#upload-file) {
 .center_box label{
     margin-left: 10px;
     margin-right: 10px;
+}
+
+.confirm-delete p{
+    width: 100%;
+}
+.confirm-delete span{
+    font-weight: bold;
+}
+.confirm-delete button{
+    margin-left: 14%;
+    margin-right: 10%;
+    width: 25%;
+}
+.confirm-delete-btn{
+    background-color: brown;
+    border-color: rgba(206, 55, 31, 0.75);
+    -webkit-box-shadow: 0 3px rgba(206, 55, 31, 0.75);
+    -moz-box-shadow: 0 3px rgba(206, 55, 31, 0.75);
+    box-shadow: 0 3px rgba(206, 55, 31, 0.75);
 }

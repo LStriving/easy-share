@@ -15,9 +15,11 @@ from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 from apps.surgery.libs.oad.tools.frames_extraction import extract_frames
 from apps.sharefiles.redis_pool import POOL
 from apps.surgery.libs.oad.tools.generate_demo_target import generate
-from apps.surgery.libs.oad.tools.demo_net import demo
 from apps.surgery.libs.oad.tools.trans_npy2txt import trans,get_dur_txt
-from apps.surgery.libs.oad.src.utils.parser import load_config
+OAD_ENABLE = os.environ.get('OAD_ENABLE')
+if OAD_ENABLE == '1':
+    from apps.surgery.libs.oad.tools.demo_net import demo
+    from apps.surgery.libs.oad.src.utils.parser import load_config
 
 def end_task_meta():
     '''
@@ -25,7 +27,9 @@ def end_task_meta():
     '''
     conn = redis.Redis(connection_pool=POOL)
     with conn.lock('task_lock'):
-        cache.decr("launching_tasks_num")
+        cache.get("launching_tasks_num", 0)
+        if cache.get("launching_tasks_num") > 0:
+            cache.decr("launching_tasks_num")
 
 @app.task
 def infer_jobs(task_id, video_path):
@@ -48,7 +52,7 @@ def infer_jobs(task_id, video_path):
     except Exception as e:
         print("Extract frames failed: ", e)
         task.task_status='error'
-        task.task_result_url = "Extract frames failed"
+        task.task_result_url = "Extract frames failed, you may need to upload the video again."
         task.save()
         end_task_meta()
         return
@@ -129,7 +133,7 @@ def get_task_n_work():
             with conn.lock('task_lock'):
                 cache.incr("launching_tasks_num")
             # start the task
-            celery.current_app.send_task('infer_jobs',[task.id, Django_path_get_path(task.file)])
+            celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)])
 
 def extract_frame_jobs(video_path):
     '''
@@ -137,7 +141,7 @@ def extract_frame_jobs(video_path):
     '''
     video_dir = os.path.dirname(video_path)
     video_name = os.path.basename(video_path)
-    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True)
+    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True,single_thread=True)
     # output: EXTRACT_OUTPUT_DIR/video_name/{}_{}.jpg
 
 def oad_jobs(video_path):
@@ -235,12 +239,12 @@ def at_start(sender, **kwargs):
     cache.set("launching_tasks_num", 0)
     if not tasks:
         print("No error tasks to retry")
-        
     for task in tasks:
         print("Starting task: ", task.task_name)
         task.task_status='pending'
         task.task_result_url = ''
         task.save()
+    get_task_n_work()
 
 @worker_shutdown.connect
 def at_end(sender, **kwargs):

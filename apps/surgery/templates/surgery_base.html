@@ -4,15 +4,29 @@
     <meta charset="UTF-8" />
     {% load static %}
     <link rel="stylesheet" href="{% static 'surgery/css/w3.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'sharefiles/css/notification.css' %}"
+    />
     <script src="{% static 'sharefiles/js/notification.js' %}"></script>
     <script src="{% static 'sharefiles/js/pagination.js' %}"></script>
+    <script src="{% static 'access/js/csrf.js' %}"></script>
+    <link
+      href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css"
+      rel="stylesheet"
+    />
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
   </head>
   <header>{% include "./menu.html" %}</header>
   <body>
+    <div id="notification-container"></div>
     {% block content %} {% endblock %}
     <div class="w3-container">
       <div class="w3-bar w3-round pagination-links"></div>

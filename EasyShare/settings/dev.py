@@ -1,5 +1,7 @@
 from .base import *
 
+# disable oad
+os.environ.setdefault('OAD_ENABLE', '0')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.dev')
 
 CACHES = {

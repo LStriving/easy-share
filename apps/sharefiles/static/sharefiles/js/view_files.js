@@ -101,7 +101,7 @@ $(document).ready(function () {
   $(".confirm-delete-btn").on("click", function () {
     var fileId = contextMenu.dataset.Id;
     $.ajax({
-      url: `/easyshare/large_file_remove`,
+      url: `/easyshare/large_file_remove?folder_id=${folderId}`,
       method: "DELETE",
       data: { file_id: fileId },
       beforeSend: function (xhr, settings) {

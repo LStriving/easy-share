@@ -7,14 +7,13 @@ from rest_framework.response import Response
 from EasyShare.settings.base import FILE_1_POSTFIX, FILE_8_POSTFIX, OAD_FILE_OUTPUT_URL,\
 PRE_DUR_FILE_POSTFIX, PRE_FILE_POSTFIX, SEG_FILE_OUTPUT_URL, SEG_VIDEO_OUTPUT_URL
 
-from access.utils import IsOwner
+from access.utils import IsOwner, IsOwnerOrAdmin
 from sharefiles.utils import Django_path_get_path
 from sharefiles.models import File
 from .models import Task
 from .serializers import TaskSerializer
 from .tasks import infer_jobs
 
-# Create your views here.
 
 def index(request):
     return render(request, "index.html")
@@ -41,7 +40,7 @@ def add_task(request):
     except File.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND, data={"error":"File not found"})
     
-    if file.user != user or user.is_staff == False:
+    if file.user != user and user.is_staff == False:
         return Response(status=status.HTTP_403_FORBIDDEN, data={"error":"Permission denied"})
 
     task, create = Task.objects.get_or_create(user=user,file=file,
@@ -102,3 +101,21 @@ def result_view(request):
         "pred_dur": pred_dur
     }
     return render(request, "result.html", result)
+
+# TODO: delete task
+@api_view(['DELETE'])
+@permission_classes([IsOwnerOrAdmin])
+def delete_task(request, pk):
+    '''
+        delete task
+    '''
+    # get task
+    try:
+        task = Task.objects.get(id=pk)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND, data={"error":"Task not found"})
+    if task.task_status == "doing":
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"error":"Task is doing, can not be deleted"})
+    # delete task
+    task.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)

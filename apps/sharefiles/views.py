@@ -15,12 +15,21 @@ from django.views.generic import TemplateView
 
 import os
 
-
+# TODO: fix or remove
 class IsFolderOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         # Check if the request user has a specific username or email
-        folder_id = view.kwargs.get('folder_id',0)
+        # get folder id in different request method by key `folder_id`
+        if request.method == 'GET':
+            print("GET")
+            folder_id = request.GET.get('folder_id')
+        else:
+            folder_id = view.kwargs.get('folder_id',0)
+        print(f"Folder id: {folder_id}")
         folder = Folder.objects.filter(id=folder_id).first()
+        if request.user is None:
+            print('User not found!')
+            return False
         if folder is not None:
             return request.user == folder.user
         return False
@@ -363,7 +372,7 @@ def chunk_file_upload(request,folder_id):
                         data={'message':'check the params'})
     
 @api_view(['POST'])
-@permission_classes([IsFolderOwnerOrAdmin])
+@permission_classes([permissions.IsAuthenticated])
 def large_file_instance_create(request,folder_id):
     '''
         post:
@@ -459,7 +468,7 @@ def merge_upload_chunks(request):
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
 
 @api_view(['DELETE','POST'])
-@permission_classes([IsFolderOwnerOrAdmin])
+@permission_classes([permissions.IsAuthenticated])
 def remove_large_file(request):
     '''
         delete:

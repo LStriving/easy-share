@@ -1,5 +1,7 @@
 from .base import *
 
+# enable oad
+os.environ.setdefault('OAD_ENABLE', '1')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.test')
 
 ALLOWED_HOSTS = ['127.0.0.1','hailin545.cn','luohailin.cn','localhost','47.113.193.7']
