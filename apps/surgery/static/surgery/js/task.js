@@ -73,7 +73,17 @@ $(document).ready(function () {
   getTaskList();
   //refresh the task list every 10 seconds
   //   setInterval(getTaskList, 10000);
-
+  function appendContextMenuItems(id, text) {
+    if (document.getElementById(id)) {
+      return;
+    }
+    $("#delete-task").after(
+      `<li class="item" id="${id}">
+      <i class="material-icons">${id}</i>
+      <span>${text}</span>
+    </li>`
+    );
+  }
   const contextMenu = document.querySelector(".wrapper");
   // Handle right-click events
   $(document).on("contextmenu", ".row", function (e) {
@@ -81,6 +91,11 @@ $(document).ready(function () {
     // get the task id and task name from data-label
     var task_id = $(this).data("task-id");
     var task_name = $(this).find("[data-label=task_name]").text();
+    var task_status = $(this).find("[data-label=task_status]").text();
+    console.log("task_status: ", task_status);
+    if (task_status.includes("error")) {
+      appendContextMenuItems("replay", "Retry");
+    }
     console.log("Right-clicked on task name: ", task_name);
     showContextMenu(e, contextMenu, task_id, task_name);
   });
