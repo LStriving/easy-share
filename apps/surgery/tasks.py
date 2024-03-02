@@ -10,7 +10,7 @@ from EasyShare.settings.base import FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, 
 MAX_EXECUTING_TASK_AT_ONCE, PRE_DUR_FILE_POSTFIX, PRE_FILE_POSTFIX,SEG_FILE_OUTPUT_DIR, SEG_IMG_OUTPUT_DIR, TARGET_DIR, SEG_VIDEO_OUTPUT_DIR,EXTRACT_OUTPUT_DIR
 from apps.sharefiles.utils import Django_path_get_path
 from .models import Task
-from .utils import get_free_gpu_memory, Arg, try_reading_video, frames2video
+from .utils import avi_to_web_mp4, get_free_gpu_memory, Arg, try_reading_video, frames2video
 from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 from apps.surgery.libs.oad.tools.frames_extraction import extract_frames
 from apps.sharefiles.redis_pool import POOL
@@ -22,13 +22,17 @@ if OAD_ENABLE == '1':
     from apps.surgery.libs.oad.src.utils.parser import load_config
 from django.db.models import Q
 
-def end_task_meta():
+def end_task_meta(task_id):
     '''
         end the task
     '''
     conn = redis.Redis(connection_pool=POOL)
     with conn.lock('task_lock'):
         cache.get("launching_tasks_num", 0)
+        running_tasks = cache.get("running_tasks", [])
+        if len(running_tasks) > 0 and task_id in running_tasks:
+            running_tasks.remove(task_id)
+            cache.set("running_tasks", running_tasks)
         if cache.get("launching_tasks_num") > 0:
             cache.decr("launching_tasks_num")
 
@@ -37,11 +41,27 @@ def infer_jobs(task_id, video_path):
     '''
         pass video to model to infer
     '''
+    conn = redis.Redis(connection_pool=POOL)
+    with conn.lock('task_lock'):
+        running_num = cache.get("launching_tasks_num", 0)
+        already_running = task_id in cache.get("running_tasks", [])
+        if already_running:
+            print("Task is already running in another worker")
+            return
+        if running_num >= MAX_EXECUTING_TASK_AT_ONCE:
+            print("Reach the max running tasks limit")
+            return
+        else:
+            cache.incr("launching_tasks_num")
     # get task
     task=Task.objects.get(id=task_id)
     print("Infering video: ", video_path)
     task.task_status='executing'
     task.save()
+    # add to running tasks
+    running_tasks = cache.get("running_tasks", [])
+    running_tasks.append(task_id)
+    cache.set("running_tasks", running_tasks)
     # extract frames
     try:
         print("Extracting frames")
@@ -55,7 +75,7 @@ def infer_jobs(task_id, video_path):
         task.task_status='error'
         task.task_result_url = "Extract frames failed, you may need to upload the video again."
         task.save()
-        end_task_meta()
+        end_task_meta(task_id)
         return
     # pass to SEG model
     free_mem = get_free_gpu_memory(GPU_DEVICE)
@@ -64,31 +84,31 @@ def infer_jobs(task_id, video_path):
         task.task_status='pending'
         task.task_result_url = "GPU memory is not enough, waiting for next round"
         task.save()
-        end_task_meta()
+        end_task_meta(task_id)
         return
     try:
         print("Passing to SEG model")
         task.task_status='SEG inferring'
         task.task_result_url = ''
         task.save()
-        seg_jobs(video_path)
+        seg_jobs_notmpframes(video_path)
         print("SEG model done")
     except Exception as e:
         print("SEG model failed: ", e)
         task.task_status='error'
         task.task_result_url = "SEG model failed" 
         task.save()
-        end_task_meta()
+        end_task_meta(task_id)
         return
     # pass to OAD model
     # inspect GPU memory usage first
     free_mem = get_free_gpu_memory(GPU_DEVICE)
-    if free_mem < 10:
+    if free_mem < 6:
         print("GPU memory is not enough")
         task.task_status='pending'
         task.task_result_url = "GPU memory is not enough, waiting for next round"
         task.save()
-        end_task_meta()
+        end_task_meta(task_id)
         return
     try:
         print("Passing to OAD model")
@@ -102,12 +122,14 @@ def infer_jobs(task_id, video_path):
         task.task_status='error'
         task.task_result_url = "OAD model failed"
         task.save()
-        end_task_meta()
+        end_task_meta(task_id)
+        return
     
     # end task
     task.task_status='done'
     task.task_result_url='file_result?file_id='+str(task.file.id)
     task.save()
+    end_task_meta(task_id)
     return
 
 @app.task
@@ -115,24 +137,16 @@ def get_task_n_work():
     '''
         get task from db and start the task
     '''
-    conn = redis.Redis(connection_pool=POOL)
     # get tasks from db
     tasks=Task.objects.filter(task_status='pending')
     if not tasks:
         print("No pending tasks to do")
         return
     else:
-        with conn.lock('task_lock'):
-            running_num = cache.get("launching_tasks_num", 0)
-            if running_num >= MAX_EXECUTING_TASK_AT_ONCE:
-                print("Reach the max running tasks limit")
-                return
         # get first MAX_EXECUTING_TASK_AT_ONCE tasks to do (sorted by created time)
-        tasks = tasks.order_by('task_created_time')[:MAX_EXECUTING_TASK_AT_ONCE-running_num]
+        tasks = tasks.order_by('task_created_time')
         for task in tasks:
-            print(f"Starting task({task.id}): ", task.task_name)
-            with conn.lock('task_lock'):
-                cache.incr("launching_tasks_num")
+            print(f"Send start signal to task({task.id}): ", task.task_name)
             # start the task
             celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)])
 
@@ -142,7 +156,7 @@ def extract_frame_jobs(video_path):
     '''
     video_dir = os.path.dirname(video_path)
     video_name = os.path.basename(video_path)
-    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True,single_thread=True)
+    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True,single_thread=True,new_height=1080,new_width=1920)
     # output: EXTRACT_OUTPUT_DIR/video_name/{}_{}.jpg
 
 def oad_jobs(video_path):
@@ -150,8 +164,8 @@ def oad_jobs(video_path):
         pass video to OAD model
     '''
     # generate npy
-    generate(EXTRACT_OUTPUT_DIR, TARGET_DIR)
     video_name = os.path.basename(video_path).split('.')[0]
+    generate(EXTRACT_OUTPUT_DIR, TARGET_DIR, video_name)
     # pass to OAD model
     opts = [
         'DATA.PATH_TO_DATA_DIR', EXTRACT_OUTPUT_DIR,
@@ -163,7 +177,7 @@ def oad_jobs(video_path):
         'TEST.CHECKPOINT_FILE_PATH', OAD_CHECKPOINT,
         'DEMO.BENCHMARK', False,
     ]
-    args = Arg(cfg_files="configs/Surgery/web.yaml",opts=opts)
+    args = Arg(cfg_files="apps/surgery/libs/oad/configs/Surgery/web.yaml",opts=opts)
     cfg = load_config(args,args.cfg_files)
     demo(cfg=cfg)
     # get from result npy and transform to txt
@@ -179,7 +193,6 @@ def seg_jobs(video_path):
         pass video to segmentation model
         need to be resumable
     '''
-    seg = SegAPI()
     video_name = os.path.basename(video_path)
     video_name = video_name.split('.')[0]
     img_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
@@ -193,6 +206,7 @@ def seg_jobs(video_path):
     num_seg_already_done = len(os.listdir(out_dir))
     if num_seg_already_done > 0:
         print(f"Already done {num_seg_already_done} frames")
+    seg = SegAPI()
     # main predicting loop
     for index in range(num_seg_already_done, len(img_list)-1):
         img_path = os.path.join(img_dir, img_list[index])
@@ -222,7 +236,55 @@ def seg_jobs(video_path):
 
     if not os.path.exists(video_out_path) or not try_reading_video(video_out_path):
         frames2video(video_name, out_dir, video_out_path)
-    print("SEG model done") 
+    # remove the frames
+    for img in os.listdir(out_dir):
+        os.remove(os.path.join(out_dir, img))
+
+def seg_jobs_notmpframes(video_path):
+    '''
+        pass video to segmentation model
+        and generate the result video without reading frames from disk
+    '''
+    video_name = os.path.basename(video_path)
+    video_name = video_name.split('.')[0]
+    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    assert os.path.exists(img_dir), f"{img_dir} not exists"
+    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, video_name+'.mp4')
+    if not os.path.exists(video_out_path) or not try_reading_video(video_out_path):
+        if not os.path.exists(SEG_VIDEO_OUTPUT_DIR):
+            os.makedirs(SEG_VIDEO_OUTPUT_DIR)
+        img_list = os.listdir(img_dir)
+        flags_1_345,flags_8_910 = [],[]
+        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        video_writer = cv2.VideoWriter(video_out_path.replace(".mp4",".avi"), fourcc, 24, (1920,1080))
+        # main predicting loop
+        seg = SegAPI()
+        for index in range(len(img_list)-1):
+            img_path = os.path.join(img_dir, img_list[index])
+            assert os.path.exists(img_path), f"{img_path} not exists"
+            img = cv2.imread(img_path)
+            assert img is not None, f"{img_path} is not readable"
+            out_frame, flag_1_345, flag_8_910 = seg.get_vis_flag(img)
+            flags_1_345.append(flag_1_345)
+            flags_8_910.append(flag_8_910)
+            video_writer.write(out_frame)
+        video_writer.release()
+        del seg
+        # save flags to file
+        interact_1_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_1_POSTFIX)
+        interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_8_POSTFIX)
+        if not os.path.exists(SEG_FILE_OUTPUT_DIR):
+            os.makedirs(SEG_FILE_OUTPUT_DIR)
+        with open(interact_1_file, 'w') as f:
+            f.write("\n".join(flags_1_345))
+        with open(interact_8_file, 'w') as f:
+            f.write("\n".join(flags_8_910))
+        # convert to mp4
+        avi_to_web_mp4(video_out_path.replace(".mp4",".avi"))
+        # remove avi
+        os.remove(video_out_path.replace(".mp4",".avi"))
+    else:
+        print(f"Video {video_out_path} already exists")
 
 
 @worker_ready.connect
@@ -235,6 +297,7 @@ def at_start(sender, **kwargs):
     print("Worker is ready")
     # get tasks from db
     tasks=Task.objects.filter(Q(task_status='error')
+                            # for cold shutdown: 
                             |Q(task_status='doing')
                             |Q(task_status='executing')
                             |Q(task_status='SEG inferring')

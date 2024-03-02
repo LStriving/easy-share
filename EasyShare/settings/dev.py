@@ -22,7 +22,7 @@ app.conf.update(
     task_acks_late=True,
     task_acks_on_failure_or_timeout=False,
     worker_concurrency=2,  # cpu cores
-    worker_prefetch_multiplier=1,  # default 4
+    worker_prefetch_multiplier=2,  # default 4
     worker_max_tasks_per_child=10,  # after work 10 tasks, worker will be terminated
     task_track_started=True,
     broker_connection_retry_on_startup = True,

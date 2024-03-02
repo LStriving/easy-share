@@ -20,7 +20,7 @@ class Arg():
     num_shards:int=1
     init_method:str="tcp://localhost:9999"
     cfg_files:str="configs/Surgery/web.yaml"
-    opts=None
+    opts:list=None
     
 
 def try_reading_video(video_path):
@@ -46,7 +46,7 @@ def frames2video(video_name, frames_dir, video_out_path:str):
     assert os.path.exists(img_list[0]), f"{img_list[0]} not exists"
     img = cv2.imread(img_list[0])
     h,w,c = img.shape
-    fourcc = cv2.VideoWriter_fourcc(*'XVID') #TODO: check whether support for html5
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
     video_writer = cv2.VideoWriter(video_out_path.replace(".mp4",".avi"), fourcc, 24, (w,h))
     for img_path in img_list:
         img = cv2.imread(img_path)
@@ -64,6 +64,8 @@ def avi_to_web_mp4(input_file_path):
     @param: [in] input_file_path 带avi或mp4的非H264编码的视频的全路径
     @return: [output] output_file_path 生成的H264编码视频的全路径
     '''
+    assert input_file_path.endswith('.avi'), "input file should be .avi"
+    assert os.path.exists(input_file_path), f"{input_file_path} not exists"
     output_file_path = input_file_path[:-3] + 'mp4'
     cmd = 'ffmpeg -y -i {} -vcodec h264 {}'.format(input_file_path, output_file_path)
     # run cmd
