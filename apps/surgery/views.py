@@ -102,7 +102,6 @@ def result_view(request):
     }
     return render(request, "result.html", result)
 
-# TODO: delete task
 @api_view(['DELETE'])
 @permission_classes([IsOwnerOrAdmin])
 def delete_task(request, pk):
@@ -119,3 +118,23 @@ def delete_task(request, pk):
     # delete task
     task.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+@permission_classes([IsOwnerOrAdmin])
+def retry_error_task(request,pk):
+    '''
+        retry error task
+    '''
+    # get task
+    try:
+        task = Task.objects.get(id=pk)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND, data={"error":"Task not found"})
+    # check task status
+    if task.task_status != "error":
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={"error":"Task is not in error state"})
+    # retry task
+    task.task_status = "pending"
+    task.task_result_url = "In queue"
+    task.save()
+    return Response(status=status.HTTP_200_OK)
