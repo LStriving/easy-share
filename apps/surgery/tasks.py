@@ -10,7 +10,7 @@ from EasyShare.settings.base import FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, 
 MAX_EXECUTING_TASK_AT_ONCE, PRE_DUR_FILE_POSTFIX, PRE_FILE_POSTFIX,SEG_FILE_OUTPUT_DIR, SEG_IMG_OUTPUT_DIR, TARGET_DIR, SEG_VIDEO_OUTPUT_DIR,EXTRACT_OUTPUT_DIR
 from apps.sharefiles.utils import Django_path_get_path
 from .models import Task
-from .utils import get_free_gpu_memory, Arg
+from .utils import get_free_gpu_memory, Arg, try_reading_video, frames2video
 from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 from apps.surgery.libs.oad.tools.frames_extraction import extract_frames
 from apps.sharefiles.redis_pool import POOL
@@ -20,6 +20,7 @@ OAD_ENABLE = os.environ.get('OAD_ENABLE')
 if OAD_ENABLE == '1':
     from apps.surgery.libs.oad.tools.demo_net import demo
     from apps.surgery.libs.oad.src.utils.parser import load_config
+from django.db.models import Q
 
 def end_task_meta():
     '''
@@ -180,18 +181,25 @@ def seg_jobs(video_path):
     '''
     seg = SegAPI()
     video_name = os.path.basename(video_path)
-    img_dir = os.path.join(OAD_OUTPUT_DIR, video_name)
-    assert os.path.exists(img_dir)
+    video_name = video_name.split('.')[0]
+    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    assert os.path.exists(img_dir), f"{img_dir} not exists"
     img_list = os.listdir(img_dir)
     out_dir = os.path.join(SEG_IMG_OUTPUT_DIR, video_name)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
+        print(f"Create dir: {out_dir}")
     flags_1_345,flags_8_910 = [],[]    
     num_seg_already_done = len(os.listdir(out_dir))
+    if num_seg_already_done > 0:
+        print(f"Already done {num_seg_already_done} frames")
     # main predicting loop
-    for index in range(num_seg_already_done, len(img_list)):
+    for index in range(num_seg_already_done, len(img_list)-1):
         img_path = os.path.join(img_dir, img_list[index])
-        out_frame, flag_1_345, flag_8_910 = seg.get_vis_flag(img_path)
+        assert os.path.exists(img_path)
+        img = cv2.imread(img_path)
+        assert img is not None
+        out_frame, flag_1_345, flag_8_910 = seg.get_vis_flag(img)
         out_path = os.path.join(out_dir, img_list[index])
         cv2.imwrite(out_path, out_frame)
         flags_1_345.append(flag_1_345)
@@ -203,28 +211,19 @@ def seg_jobs(video_path):
     interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_8_POSTFIX)
     if not os.path.exists(SEG_FILE_OUTPUT_DIR):
         os.makedirs(SEG_FILE_OUTPUT_DIR)
-    with open(interact_1_file, 'w') as f:
+    with open(interact_1_file, 'w+') as f:
         f.write("\n".join(flags_1_345))
-    with open(interact_8_file, 'w') as f:
+    with open(interact_8_file, 'w+') as f:
         f.write("\n".join(flags_8_910))
     # save video
-    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, video_name)
-    if not os.path.exists(video_out_path):
-        os.makedirs(video_out_path)
-    # read frames and merge to video
-    img_list = os.listdir(out_dir)
-    # img name: {}_{index}.jpg
-    img_list.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
-    img_list = [os.path.join(out_dir, img) for img in img_list]
-    img = cv2.imread(img_list[0])
-    h,w,c = img.shape
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') #TODO: check whether support for html5
-    video_writer = cv2.VideoWriter(os.path.join(video_out_path, video_name), fourcc, 24, (w,h))
-    for img in img_list:
-        img = cv2.imread(img)
-        video_writer.write(img)
-    video_writer.release()
-    return
+    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, video_name+'.mp4')
+    if not os.path.exists(SEG_VIDEO_OUTPUT_DIR):
+        os.makedirs(SEG_VIDEO_OUTPUT_DIR)
+
+    if not os.path.exists(video_out_path) or not try_reading_video(video_out_path):
+        frames2video(video_name, out_dir, video_out_path)
+    print("SEG model done") 
+
 
 @worker_ready.connect
 def at_start(sender, **kwargs):
@@ -235,7 +234,13 @@ def at_start(sender, **kwargs):
     '''
     print("Worker is ready")
     # get tasks from db
-    tasks=Task.objects.filter(task_status='error')
+    tasks=Task.objects.filter(Q(task_status='error')
+                            |Q(task_status='doing')
+                            |Q(task_status='executing')
+                            |Q(task_status='SEG inferring')
+                            |Q(task_status='OAD inferring')
+                            |Q(task_status='extracting frames')
+                            )
     cache.set("launching_tasks_num", 0)
     if not tasks:
         print("No error tasks to retry")
