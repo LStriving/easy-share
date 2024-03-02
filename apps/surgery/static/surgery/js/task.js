@@ -73,16 +73,53 @@ $(document).ready(function () {
   getTaskList();
   //refresh the task list every 10 seconds
   //   setInterval(getTaskList, 10000);
-  function appendContextMenuItems(id, text) {
+  function appendContextMenuItems(id, icon, text) {
     if (document.getElementById(id)) {
       return;
     }
     $("#delete-task").after(
       `<li class="item" id="${id}">
-      <i class="material-icons">${id}</i>
+      <i class="material-icons">${icon}</i>
       <span>${text}</span>
     </li>`
     );
+    $("#retry-task").on("click", function () {
+      var taskId = contextMenu.dataset.Id;
+      console.log("Retry task: ", taskId);
+      $.ajax({
+        url: `/surgery/retry_task/${taskId}`,
+        method: "GET",
+        beforeSend: function (xhr, settings) {
+          xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+        },
+        statusCode: {
+          200: function () {
+            showNotification("success", "Success", "Task retried");
+            getTaskList();
+          },
+          400: function () {
+            showNotification(
+              "warning",
+              "Warning",
+              "Unable to retry a launching task"
+            );
+          },
+          404: function () {
+            showNotification("error", "Error", "Task not found");
+          },
+          403: function () {
+            showNotification("error", "Error", "Permission denied");
+          },
+          500: function () {
+            showNotification("error", "Error", "An error occurred");
+          },
+        },
+        error: function (error) {
+          console.error(error);
+          showNotification("error", "Error", "An error occurred");
+        },
+      });
+    });
   }
   const contextMenu = document.querySelector(".wrapper");
   // Handle right-click events
@@ -92,9 +129,8 @@ $(document).ready(function () {
     var task_id = $(this).data("task-id");
     var task_name = $(this).find("[data-label=task_name]").text();
     var task_status = $(this).find("[data-label=task_status]").text();
-    console.log("task_status: ", task_status);
     if (task_status.includes("error")) {
-      appendContextMenuItems("replay", "Retry");
+      appendContextMenuItems("retry-task", "replay", "Retry");
     }
     console.log("Right-clicked on task name: ", task_name);
     showContextMenu(e, contextMenu, task_id, task_name);
