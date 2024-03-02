@@ -9,9 +9,10 @@
     <h1>Camera Access Example</h1>
     <!-- Update the video, canvas, and button elements in HTML -->
     <video id="videoElement" width="400" height="300" autoplay></video>
-    <canvas id="canvas" width="400" height="300"></canvas>
+    <canvas id="canvas" width="400" height="300" style="display: none"></canvas>
     <button id="segmentationButton">Start Segmentation</button>
-
+    <span id="flag_1_345"></span>
+    <span id="flag_8_910"></span>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         const videoElement = document.getElementById("videoElement");
@@ -19,7 +20,7 @@
         const context = canvas.getContext("2d");
         const segmentationButton =
           document.getElementById("segmentationButton");
-
+        const resultImageElement = document.createElement("img");
         let isSegmentationActive = false;
         let socket;
 
@@ -42,21 +43,13 @@
               // Receive segmentation result from the backend
               const result = JSON.parse(event.data);
               // Update the canvas with the segmentation result
-              // You can customize this part based on your segmentation result format
-              context.clearRect(0, 0, canvas.width, canvas.height);
-              context.drawImage(
-                videoElement,
-                0,
-                0,
-                canvas.width,
-                canvas.height
-              );
-              // Process the segmentation result and overlay it on the canvas
-              // For simplicity, assume result is a binary mask (black and white)
-              context.globalCompositeOperation = "source-in";
-              context.fillStyle = "rgba(255, 0, 0, 0.5)"; // Adjust the color and opacity
-              context.fillRect(0, 0, canvas.width, canvas.height);
-              context.globalCompositeOperation = "source-over";
+              document.getElementById("flag_1_345").innerText =
+                result.flag_1_345;
+              document.getElementById("flag_8_910").innerText =
+                result.flag_8_910;
+
+              resultImageElement.src = `data:image/png;base64,${result.result_frame}`;
+              document.body.appendChild(resultImageElement);
             };
           } else {
             // Stop segmentation
@@ -89,7 +82,7 @@
             // Send the frame to the backend (Django) through WebSocket
             socket.send(JSON.stringify({ frame: imageData }));
           }
-        }, 1000); // Adjust the interval as needed
+        }, 400); // Adjust the interval as needed
       });
     </script>
   </body>

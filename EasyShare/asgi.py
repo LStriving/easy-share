@@ -11,7 +11,7 @@ import os
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-from .routing import websocket_urlpatterns
+from apps.video_rtc.routing import websocket_urlpatterns
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.test')
 

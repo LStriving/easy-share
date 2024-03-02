@@ -4,6 +4,7 @@ import os
 import torch
 from torch.types import Device
 from typing import Union
+from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 
 def get_free_gpu_memory(device:Union[int, Device]=None):
     '''
@@ -72,6 +73,11 @@ def avi_to_web_mp4(input_file_path):
     os.system(cmd)
     return output_file_path
 
+def load_model():
+    # single instance
+    if not hasattr(load_model, "model"):
+        load_model.model = SegAPI()
+    return load_model.model
 
 if __name__ == "__main__":
     print(get_free_gpu_memory(0))

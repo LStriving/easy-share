@@ -51,7 +51,6 @@ def add_task(request):
     else:
         infer_jobs.delay(task.id, Django_path_get_path(file))
         return Response(status=status.HTTP_200_OK)
-    
 
 class TaskList(generics.ListAPIView):
     '''
