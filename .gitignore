@@ -11,7 +11,8 @@ media
 .env
 
 log
-
+*.log
+logs
 celerybeat-schedule*
 
 .ipynb_checkpoints
