@@ -6,7 +6,7 @@ import redis
 from EasyShare.celery import app
 from celery.signals import worker_ready, worker_shutdown
 from django.core.cache import cache
-from EasyShare.settings.base import FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, OAD_CHECKPOINT, OAD_FILE_OUTPUT_DIR, OAD_OUTPUT_NPY_DIR, OAD_OUTPUT_DIR,\
+from EasyShare.settings.base import DATA_INFO, FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, OAD_CHECKPOINT, OAD_FILE_OUTPUT_DIR, OAD_OUTPUT_NPY_DIR, OAD_OUTPUT_DIR,\
 MAX_EXECUTING_TASK_AT_ONCE, PRE_DUR_FILE_POSTFIX, PRE_FILE_POSTFIX,SEG_FILE_OUTPUT_DIR, SEG_IMG_OUTPUT_DIR, TARGET_DIR, SEG_VIDEO_OUTPUT_DIR,EXTRACT_OUTPUT_DIR
 from apps.sharefiles.utils import Django_path_get_path
 from .models import Task
@@ -20,7 +20,11 @@ OAD_ENABLE = os.environ.get('OAD_ENABLE')
 if OAD_ENABLE == '1':
     from apps.surgery.libs.oad.tools.demo_net import demo
     from apps.surgery.libs.oad.src.utils.parser import load_config
+    from apps.surgery.libs.oad.src.config.defaults import assert_and_infer_cfg
 from django.db.models import Q
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
 
 def end_task_meta(task_id):
     '''
@@ -46,16 +50,16 @@ def infer_jobs(task_id, video_path):
         running_num = cache.get("launching_tasks_num", 0)
         already_running = task_id in cache.get("running_tasks", [])
         if already_running:
-            print("Task is already running in another worker")
+            logger.info("Task is already running in another worker")
             return
         if running_num >= MAX_EXECUTING_TASK_AT_ONCE:
-            print("Reach the max running tasks limit")
+            logger.info("Reach the max running tasks limit")
             return
         else:
             cache.incr("launching_tasks_num")
     # get task
     task=Task.objects.get(id=task_id)
-    print("Infering video: ", video_path)
+    logger.info("Infering video: ", video_path)
     task.task_status='executing'
     task.save()
     # add to running tasks
@@ -64,12 +68,12 @@ def infer_jobs(task_id, video_path):
     cache.set("running_tasks", running_tasks)
     # extract frames
     try:
-        print("Extracting frames")
+        logger.info("Extracting frames")
         task.task_status='extracting frames'
         task.task_result_url = ''
         task.save()
         extract_frame_jobs(video_path)
-        print("Frames extracted")
+        logger.info("Frames extracted")
     except Exception as e:
         print("Extract frames failed: ", e)
         task.task_status='error'
@@ -87,12 +91,12 @@ def infer_jobs(task_id, video_path):
         end_task_meta(task_id)
         return
     try:
-        print("Passing to SEG model")
+        logger.info("Passing to SEG model")
         task.task_status='SEG inferring'
         task.task_result_url = ''
         task.save()
         seg_jobs_notmpframes(video_path)
-        print("SEG model done")
+        logger.info("SEG model done")
     except Exception as e:
         print("SEG model failed: ", e)
         task.task_status='error'
@@ -111,14 +115,14 @@ def infer_jobs(task_id, video_path):
         end_task_meta(task_id)
         return
     try:
-        print("Passing to OAD model")
+        logger.info("Passing to OAD model")
         task.task_status='OAD inferring'
         task.task_result_url = ''
         task.save()
         oad_jobs(video_path)
-        print("OAD model done")
+        logger.info("OAD model done")
     except Exception as e:
-        print("OAD model failed: ", e)
+        logger.error("OAD model failed: ", e)
         task.task_status='error'
         task.task_result_url = "OAD model failed"
         task.save()
@@ -140,13 +144,13 @@ def get_task_n_work():
     # get tasks from db
     tasks=Task.objects.filter(task_status='pending')
     if not tasks:
-        print("No pending tasks to do")
+        logger.info("No pending tasks to do")
         return
     else:
         # get first MAX_EXECUTING_TASK_AT_ONCE tasks to do (sorted by created time)
         tasks = tasks.order_by('task_created_time')
         for task in tasks:
-            print(f"Send start signal to task({task.id}): ", task.task_name)
+            logger.info(f"Send start signal to task({task.id}): ", task.task_name)
             # start the task
             celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)])
 
@@ -168,6 +172,7 @@ def oad_jobs(video_path):
     generate(EXTRACT_OUTPUT_DIR, TARGET_DIR, video_name)
     # pass to OAD model
     opts = [
+        'DATA.DATA_INFO', DATA_INFO,
         'DATA.PATH_TO_DATA_DIR', EXTRACT_OUTPUT_DIR,
         'DATA.VIDEO_FORDER','',
         'DATA.TARGET_FORDER', TARGET_DIR,
@@ -176,13 +181,12 @@ def oad_jobs(video_path):
         'TEST.CHECKPOINT_FILE_PATH', OAD_CHECKPOINT,
         'DEMO.BENCHMARK', False,
     ]
-    for i in range(0,len(opts)-1,2):
-        print(f"{opts[i]}: {opts[i+1]}")
     args = Arg(cfg_files="apps/surgery/libs/oad/configs/Surgery/web.yaml",opts=opts)
     cfg = load_config(args,args.cfg_files)
-    demo(cfg=cfg)
+    cfg = assert_and_infer_cfg(cfg)
+    save_dir = demo(cfg=cfg)
     # get from result npy and transform to txt
-    npy_file = os.path.join(OAD_OUTPUT_NPY_DIR, video_name+'.npy')
+    npy_file = os.path.join(save_dir, video_name+'.npy')
     pre_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_FILE_POSTFIX)
     dur_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_DUR_FILE_POSTFIX)
     trans(npy_file_path=npy_file,txt_file_path=pre_file)
@@ -295,7 +299,7 @@ def at_start(sender, **kwargs):
         task: infer_jobs 
         data: task in error state
     '''
-    print("Worker is ready")
+    logger.info("Worker is ready")
     # get tasks from db
     tasks=Task.objects.filter(Q(task_status='error')
                             # for cold shutdown: 
@@ -307,9 +311,9 @@ def at_start(sender, **kwargs):
                             )
     cache.set("launching_tasks_num", 0)
     if not tasks:
-        print("No error tasks to retry")
+        logger.info("No error tasks to retry")
     for task in tasks:
-        print("Starting task: ", task.task_name)
+        logger.info("Starting task: ", task.task_name)
         task.task_status='pending'
         task.task_result_url = ''
         task.save()
@@ -322,16 +326,16 @@ def at_end(sender, **kwargs):
         task: infer_jobs 
         data: task in doing state
     '''
-    print("Worker is shutting down")
+    logger.info("Worker is shutting down")
     # get tasks from db
     tasks=Task.objects.filter(task_status='doing')
     cache.set("launching_tasks_num", 0)
     if not tasks:
-        print("No doing tasks to end")
+        logger.info("No doing tasks to end")
         pass
     with sender.app.connection() as conn:
         for task in tasks:
-            print("Ending task: ", task.task_name)
+            logger.info("Ending task: ", task.task_name)
             task.task_status='pending'
             task.task_result_url = 'backend shutdown, task is pending again'
             task.save()

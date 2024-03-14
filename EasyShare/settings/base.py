@@ -165,7 +165,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'apps/access/static'),
     os.path.join(BASE_DIR, 'apps/sharefiles/static'),
 ]
-
 OAD_INPUNT_DIR = os.path.join(BASE_DIR, 'media/input_data/Surgery/') # should be the same as in the OAD model
 EXTRACT_OUTPUT_DIR = os.path.join(OAD_INPUNT_DIR,'frames') # should be the same as in the OAD model
 TARGET_DIR = os.path.join(OAD_INPUNT_DIR,'targets') # should be the same as in the OAD model
@@ -177,6 +176,7 @@ SEG_VIDEO_OUTPUT_URL = '/media/seg_video/'
 SEG_FILE_OUTPUT_URL = '/media/seg_result/'
 
 OAD_DIR = os.path.join(BASE_DIR, 'apps/surgery/libs/oad')
+DATA_INFO = os.path.join(OAD_DIR, 'data/data_info.json')
 OAD_CHECKPOINT = os.path.join(OAD_DIR, 'ckpt/checkpoint_epoch_00018.pyth')
 OAD_OUTPUT_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL[1:])
 OAD_OUTPUT_NPY_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL[1:] + 'npy')
