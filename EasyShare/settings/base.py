@@ -176,7 +176,7 @@ SEG_IMG_OUTPUT_URL = '/media/seg_img/'
 SEG_VIDEO_OUTPUT_URL = '/media/seg_video/'
 SEG_FILE_OUTPUT_URL = '/media/seg_result/'
 
-OAD_DIR = os.path.join(BASE_DIR, '/apps/surgery/libs/oad')
+OAD_DIR = os.path.join(BASE_DIR, 'apps/surgery/libs/oad')
 OAD_CHECKPOINT = os.path.join(OAD_DIR, 'ckpt/checkpoint_epoch_00018.pyth')
 OAD_OUTPUT_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL[1:])
 OAD_OUTPUT_NPY_DIR = os.path.join(BASE_DIR, OAD_OUTPUT_URL[1:] + 'npy')

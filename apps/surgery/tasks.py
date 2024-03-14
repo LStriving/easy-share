@@ -172,11 +172,12 @@ def oad_jobs(video_path):
         'DATA.VIDEO_FORDER','',
         'DATA.TARGET_FORDER', TARGET_DIR,
         'DEMO.INPUT_VIDEO', [video_name],
-        'DATA.PATH_PREFIX', 'Surgery',
         'OUTPUT_DIR', OAD_OUTPUT_NPY_DIR,
         'TEST.CHECKPOINT_FILE_PATH', OAD_CHECKPOINT,
         'DEMO.BENCHMARK', False,
     ]
+    for i in range(0,len(opts)-1,2):
+        print(f"{opts[i]}: {opts[i+1]}")
     args = Arg(cfg_files="apps/surgery/libs/oad/configs/Surgery/web.yaml",opts=opts)
     cfg = load_config(args,args.cfg_files)
     demo(cfg=cfg)
