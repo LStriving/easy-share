@@ -4,9 +4,9 @@ os.environ.setdefault('OAD_ENABLE', '1')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','EasyShare.settings.prod')
 
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ['127.0.0.1','localhost']
+ALLOWED_HOSTS = ['*']
 
-DEBUG = False
+DEBUG = True
 
 # https
 SECURE_SSL_REDIRECT = False

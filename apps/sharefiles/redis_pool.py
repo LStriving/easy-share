@@ -1,7 +1,7 @@
 import redis
 import os
 env = os.environ.get("DJANGO_SETTINGS_MODULE").split('.')[-1]
-if env == 'dev':
+if env == 'dev' or env == 'prod':
     host = '127.0.0.1'
 else:
     host = 'redis'
