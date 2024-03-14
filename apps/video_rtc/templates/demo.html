@@ -11,7 +11,12 @@
     <!-- Add a canvas element to capture frames -->
     <video id="videoElement" width="400" height="300" autoplay></video>
     <canvas id="canvas" width="400" height="300" style="display: none"></canvas>
-    <span id="result"></span>
+    {% comment %} result image stream {% endcomment %}
+    <div id="result-container">
+      <!-- Text and image will be displayed here -->
+    </div>
+    <span id="result-1"></span>
+    <span id="result-8"></span>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -49,7 +54,14 @@
               // Handle the response from the backend if needed
               // Display the response in the result span
               // parse the json response and display the message
-              document.getElementById("result").textContent = data.prediction;
+              // {'frame': img_str, 'flag_1_345': flag_1_345, 'flag_8_910': flag_8_910}
+              document.getElementById("result-1").innerText = data.flag_1_345;
+              document.getElementById("result-8").innerText = data.flag_8_910;
+              $("#result-container").html(
+                '<img src="data:image/png;base64,' +
+                  data.image_data +
+                  '" alt="Image">'
+              );
             })
             .catch((error) => console.error("Error uploading frame:", error));
         }, 1000); // Adjust the interval as needed

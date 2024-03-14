@@ -8,7 +8,6 @@ import numpy as np
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from apps.surgery.utils import load_model
-from apps.video_rtc.utils import debug_base64_image
 
 class SegmentationConsumer(AsyncWebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -25,7 +24,6 @@ class SegmentationConsumer(AsyncWebsocketConsumer):
         # Receive a message from the client (if needed)
         data = json.loads(text_data)
         image_data = data['frame']
-        debug_base64_image(image_data, "1.txt")
         # convert base64 data to image
         image_data,width, height = self.base64_to_image(image_data, 1920, 1080)
         # get process speed
@@ -37,7 +35,6 @@ class SegmentationConsumer(AsyncWebsocketConsumer):
         # Perform video segmentation and send the result back to the client
         # Convert the result image to base64
         result_frame = self.image_to_base64(result_frame)
-        debug_base64_image(result_frame, "2.txt")
         segmentation_result = {
             'result_frame': result_frame,
             'flag_1_345': flag_1_345,
