@@ -33,7 +33,7 @@ def end_task_meta(task_id):
         if len(running_tasks) > 0 and task_id in running_tasks:
             running_tasks.remove(task_id)
             cache.set("running_tasks", running_tasks)
-        if cache.get("launching_tasks_num") > 0:
+        if cache.get("launching_tasks_num", 0) > 0:
             cache.decr("launching_tasks_num")
 
 @app.task
