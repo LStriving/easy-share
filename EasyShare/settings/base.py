@@ -219,12 +219,12 @@ PER_USER_STORAGE_LIMIT = 1073741824 * 5 # 1GB * 5
 app.conf.beat_schedule = {
     # Executes every day at 00:00
     'remove-30days-tmp-file': {
-        'task': 'tasks.remove_tmp',
+        'task': 'sharefiles.utils.remove_tmp',
         'schedule': crontab(minute=0, hour=0)
     },
     # Executes every 5 minutes
     'model-prediction-task': {
-        'task': 'tasks.get_task_n_work',
+        'task': 'surgery.tasks.get_task_n_work',
         'schedule': crontab(minute='*/5')
     },
 }
