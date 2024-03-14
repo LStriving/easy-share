@@ -131,7 +131,7 @@ def infer_jobs(task_id, video_path):
     
     # end task
     task.task_status='done'
-    task.task_result_url='file_result?file_id='+str(task.file.id)
+    task.task_result_url='<a href="file_result?file_id='+str(task.file.id) + '">View Result</a>'
     task.save()
     end_task_meta(task_id)
     return
@@ -170,6 +170,11 @@ def oad_jobs(video_path):
     # generate npy
     video_name = os.path.basename(video_path).split('.')[0]
     generate(EXTRACT_OUTPUT_DIR, TARGET_DIR, video_name)
+    pre_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_FILE_POSTFIX)
+    dur_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_DUR_FILE_POSTFIX)
+    if os.path.exists(pre_file) and os.path.exists(dur_file):
+        print("Done already!")
+        return
     # pass to OAD model
     opts = [
         'DATA.DATA_INFO', DATA_INFO,
@@ -187,8 +192,6 @@ def oad_jobs(video_path):
     save_dir = demo(cfg=cfg)
     # get from result npy and transform to txt
     npy_file = os.path.join(save_dir, video_name+'.npy')
-    pre_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_FILE_POSTFIX)
-    dur_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_DUR_FILE_POSTFIX)
     trans(npy_file_path=npy_file,txt_file_path=pre_file)
     get_dur_txt(input_file_path=pre_file,output_file_path=dur_file)
     # get duration

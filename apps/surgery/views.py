@@ -67,6 +67,7 @@ def task_view(request):
     return render(request, "task.html")
 
 @api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
 def result_view(request):
     # get file id
     file_id = request.GET.get("file_id")
