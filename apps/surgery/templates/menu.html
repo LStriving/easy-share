@@ -3,8 +3,9 @@
     <div class="w3-col s3">
       <a href="/surgery" class="w3-button w3-block">HOME</a>
     </div>
+    {% comment %}
     <div class="w3-col s3 w3-dropdown-hover">
-      <a href="/surgery/monitor-demo" class="w3-button w3-block">OFFLINE</a>
+      <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
       <div class="w3-dropdown-content" style="overflow: visible">
         <a href="/surgery/monitor-demo" class="w3-button w3-block w3-black"
           >Demo</a
@@ -12,17 +13,22 @@
         <a href="/surgery/tasks" class="w3-button w3-block w3-black">Task</a>
       </div>
     </div>
+    {% endcomment %}
     <div class="w3-col s3">
-      <a href="#menu" class="w3-button w3-block">LIVE</a>
+      <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
     </div>
-    <div class="w3-col s3">
-      <a href="/easyshare/folder_list" class="w3-button w3-block">WORK DIR</a>
+      <div class="w3-col s3">
+        <a href="/surgery/tasks" class="w3-button w3-block">TASK</a>
+      </div>
+      <div class="w3-col s3">
+        <a href="/easyshare/folder_list" class="w3-button w3-block">WORK DIR</a>
+      </div>
     </div>
   </div>
+  <style>
+    #navigation {
+      background-color: black;
+      color: white;
+    }
+  </style>
 </div>
-<style>
-  #navigation {
-    background-color: black;
-    color: white;
-  }
-</style>
