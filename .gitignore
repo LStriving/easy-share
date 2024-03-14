@@ -13,3 +13,5 @@ media
 log
 
 celerybeat-schedule*
+
+.ipynb_checkpoints/*
