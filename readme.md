@@ -29,6 +29,17 @@ conda create -n dj python=3.10
 conda activate dj
 ```
 
+#### Checkpoints
+
+```bash
+cd ./apps/surgery/libs/oad
+git lfs install
+git lfs pull
+cd ../seg
+git lfs install
+git lfs pull
+```
+
 ### Requirements install
 
 ```bash
@@ -121,3 +132,4 @@ ssh -NfR 4999:localhost:3344 root@luohailin.cn -o ServerAliveInterval=60  # no s
 - [x] Task Site
 - [ ] smarter way for loading model and calling predict
 - [ ] add hint for loading video
+- [ ] add support for mulitple files upload ()

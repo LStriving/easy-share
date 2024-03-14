@@ -23,7 +23,7 @@ RUN pip install "git+https://github.com/facebookresearch/pytorchvideo.git"
 RUN apt-get update && \
     apt-get install -y build-essential
 RUN pip install 'git+https://github.com/facebookresearch/fvcore.git' 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
-RUN conda install ffmpeg=4.3
+RUN conda install ffmpeg=4.2.2
 
 # Install git-lfs
 RUN apt-get update && \
@@ -52,8 +52,9 @@ RUN git lfs pull
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=EasyShare.settings.test
 
 # Run additional commands within the Conda environment
-RUN python manage.py collectstatic --noinput --settings=EasyShare.settings.test
-RUN python manage.py makemigrations --empty access --settings=EasyShare.settings.test
-RUN python manage.py makemigrations access sharefiles --settings=EasyShare.settings.test
+RUN python manage.py collectstatic --noinput
+RUN python manage.py makemigrations --empty access 
+RUN python manage.py makemigrations access sharefiles surgery
