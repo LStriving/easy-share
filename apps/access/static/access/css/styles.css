@@ -34,7 +34,7 @@ ol,
 ul,
 li {
   list-style: none;
-  overflow:hidden;
+  overflow: hidden;
 }
 
 :focus {
@@ -57,6 +57,7 @@ p {
   margin-left: 18px;
   top: 5px;
 }
+
 h1 {
   font-size: 24px;
   font-weight: 300;
@@ -80,7 +81,8 @@ html {
 }
 
 .testbox {
-  margin: 250px auto 220px 650px;
+  top: 30%;
+  left: 40%;
   width: 343px;
   height: fit-content;
   -webkit-border-radius: 8px/7px;
@@ -92,7 +94,7 @@ html {
   box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.31);
   border: solid 1px #cbc9c9;
   display: inline-block;
-  position: relative;
+  position: fixed;
   align-items: center;
 }
 
@@ -104,7 +106,7 @@ form {
   margin: 0 30px;
 }
 
-form p{
+form p {
   /*  */
   margin: 10px 20px;
 }
@@ -149,7 +151,7 @@ label.radio:after {
   transform: rotate(-45deg);
 }
 
-input[type="radio"]:checked + label:after {
+input[type="radio"]:checked+label:after {
   opacity: 1;
 }
 
