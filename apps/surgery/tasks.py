@@ -95,7 +95,7 @@ def infer_jobs(task_id, video_path):
         task.task_status='SEG inferring'
         task.task_result_url = ''
         task.save()
-        seg_jobs_notmpframes(video_path)
+        seg_jobs(video_path)
         logger.info("SEG model done")
     except Exception as e:
         print("SEG model failed: ", e)
@@ -262,6 +262,7 @@ def seg_jobs_notmpframes(video_path):
         if not os.path.exists(SEG_VIDEO_OUTPUT_DIR):
             os.makedirs(SEG_VIDEO_OUTPUT_DIR)
         img_list = os.listdir(img_dir)
+        img_list.sort(key=lambda x: int(x.split('_')[-1].split('.')[0]))
         flags_1_345,flags_8_910 = [],[]
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         video_writer = cv2.VideoWriter(video_out_path.replace(".mp4",".avi"), fourcc, 24, (1920,1080))
