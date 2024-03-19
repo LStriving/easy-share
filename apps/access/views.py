@@ -92,7 +92,7 @@ def logout_view(request):
             logout
     '''
     logout(request)
-    return redirect('login')
+    return redirect('/')
 
 
 @api_view(['GET'])

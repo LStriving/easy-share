@@ -62,7 +62,7 @@ class TaskList(generics.ListAPIView):
     def get_queryset(self):
         return Task.objects.filter(user=self.request.user)
 
-@login_required(login_url='/')
+@login_required(login_url='/user/login/')
 def task_view(request):
     return render(request, "task.html")
 

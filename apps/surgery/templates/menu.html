@@ -1,22 +1,24 @@
+{% comment %} include js for login info {% endcomment %}
 <div class="w3-top" id="navigation">
   <div class="w3-row w3-padding">
-    <div class="w3-col s3">
-      <a href="/surgery" class="w3-button w3-block">HOME</a>
-    </div>
-    {% comment %}
-    <div class="w3-col s3 w3-dropdown-hover">
-      <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
-      <div class="w3-dropdown-content" style="overflow: visible">
-        <a href="/surgery/monitor-demo" class="w3-button w3-block w3-black"
-          >Demo</a
-        >
-        <a href="/surgery/tasks" class="w3-button w3-block w3-black">Task</a>
+    <div style="width: 40%">
+      <div class="w3-col s3">
+        <a href="/surgery" class="w3-button w3-block">HOME</a>
       </div>
-    </div>
-    {% endcomment %}
-    <div class="w3-col s3">
-      <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
-    </div>
+      {% comment %}
+      <div class="w3-col s3 w3-dropdown-hover">
+        <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
+        <div class="w3-dropdown-content" style="overflow: visible">
+          <a href="/surgery/monitor-demo" class="w3-button w3-block w3-black"
+            >Demo</a
+          >
+          <a href="/surgery/tasks" class="w3-button w3-block w3-black">Task</a>
+        </div>
+      </div>
+      {% endcomment %}
+      <div class="w3-col s3">
+        <a href="/surgery/monitor-demo" class="w3-button w3-block">DEMO</a>
+      </div>
       <div class="w3-col s3">
         <a href="/surgery/tasks" class="w3-button w3-block">TASK</a>
       </div>
@@ -24,11 +26,31 @@
         <a href="/easyshare/folder_list" class="w3-button w3-block">WORK DIR</a>
       </div>
     </div>
+    <div class="right">
+      {% if request.user.is_authenticated %}
+      <div class="w3-col s3 w3-dropdown-hover">
+        <a href="#" class="w3-button w3-block w3-black"
+          >{{ request.user.username }}</a
+        >
+        <div class="w3-dropdown-content" style="overflow: visible">
+          <a href="/user/logout" class="w3-button w3-block w3-black">Logout</a>
+        </div>
+        {% else %}
+        <div class="w3-col s3">
+          <a href="/user/login" class="w3-button w3-block">Login</a>
+        </div>
+        <div class="w3-col s3">
+          <a href="/user/register" class="w3-button w3-block">Register</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <style>
+      #navigation {
+        background-color: black;
+        color: white;
+        z-index: 10;
+      }
+    </style>
   </div>
-  <style>
-    #navigation {
-      background-color: black;
-      color: white;
-    }
-  </style>
 </div>
