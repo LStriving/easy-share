@@ -5,6 +5,7 @@
   <h2>Login</h2>
   <form method="post" action="{% url 'login' %}">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}" />
     <label id="icon" for="name"><i class="icon-user"></i></label>
     <input
       type="text"
