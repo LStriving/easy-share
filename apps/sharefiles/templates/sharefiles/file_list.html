@@ -30,6 +30,32 @@
   <button type="submit" onclick="handleUpload()" id="confirm-upload-btn">
     Upload
   </button>
+  <div class="upload-hints w3-content w3-margin-top" style="filter: blur(0px); border: 1px solid #ddd;">
+    <div id="zh-hints" class="upload-hints" style="display: none;">
+      <a id="switch-lan" class="upload-hints" onclick="toggleLang('en')">
+        <i class="material-icons">g_translate</i> English
+      </a>
+      <h3 class="w3-center">注意事项</h3>
+      <span class="hint-number">1.</span> 不建议一次上传过大的文件，容易导致失败。<br />
+      <span class="hint-number">2.</span> 上传文件时请确保网络环境稳定，最好使用Wi-Fi。<br />
+      <span class="hint-number">3.</span> 医院防火墙可能会干扰视频上传。<br />
+      <span class="hint-number">4.</span> 由于服务器容量限制，请不要上传超过2个视频。<br />
+    </div>
+
+    <div id="en-hints" class="upload-hints">
+      <a id="switch-lan" class="upload-hints" onclick="toggleLang('zh')">
+        <i class="material-icons" >g_translate</i> 中文
+      </a>
+      <h3 class="w3-center">Attention</h3>
+      <span class="hint-number">1.</span> It is recommended not to upload files that are too large at once, as it may lead to failure. <br />
+      <span class="hint-number">2.</span> Ensure a stable network environment when uploading files, preferably using Wi-Fi.<br />
+      <span class="hint-number">3.</span> Firewall may sometimes interfere with video uploads, so please be cautious.<br />
+      <span class="hint-number">4.</span> Due to server capacity limitations, please do not upload more than 2 videos.<br />
+    </div>
+  </div>
+
+</div>
+
 </div>
 {% comment %} preloader {% endcomment %}
 <div id="preloader">

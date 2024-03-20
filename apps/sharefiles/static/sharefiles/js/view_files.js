@@ -1,4 +1,16 @@
-// static/js/view_files.js
+// static/js/view_files.
+function visit(url) {
+  window.open(url, "_blank");
+}
+function toggleLang(language) {
+  if (language === "en") {
+    document.getElementById("en-hints").style.display = "block";
+    document.getElementById("zh-hints").style.display = "none";
+  } else if (language === "zh") {
+    document.getElementById("en-hints").style.display = "none";
+    document.getElementById("zh-hints").style.display = "block";
+  }
+}
 $(document).ready(function () {
   //function to get folder name
   function getFolderName(folderId) {
@@ -26,7 +38,7 @@ $(document).ready(function () {
         }
         data.results.forEach(function (file) {
           $("#file-list").append(
-            `<div class=folder data-file-id=${file.id} data-file-name=${file.name}>` +
+            `<div onclick=visit('${file.upload}'); class=folder data-file-id=${file.id} data-file-name=${file.name} data-url=${file.upload}>` +
               '<i class="material-icons">video_file</i><li>' +
               file.name +
               "</li></div>"
@@ -69,14 +81,14 @@ $(document).ready(function () {
     // place the z-index of the #upload-file div above all other divs and elements
     document.getElementById("upload-file").style.zIndex = "100";
     //blur the website except the upload file div
-    $("body div:not(#upload-file)").css("filter", "blur(6px)");
+    $("body div:not(#upload-file,.upload-hints)").css("filter", "blur(6px)");
   });
 
   // Cancel upload on button click
   $("#cancel-upload-btn").on("click", function () {
     // hide the #upload-file div
     document.getElementById("upload-file").style.display = "none";
-    $("body div:not(#upload-file)").css("filter", "blur(0px)");
+    $("body div:not(#upload-file,.upload-hints)").css("filter", "blur(0px)");
   });
 
   const contextMenu = document.querySelector(".wrapper");
@@ -87,6 +99,7 @@ $(document).ready(function () {
     var file_name = $(this).data("file-name");
     console.log("Right-clicked on file name: ", file_name);
     showContextMenu(e, contextMenu, file_id, file_name);
+    contextMenu.dataset.url = $(this).data("url");
   });
 
   const confirmDialog = document.getElementsByClassName("confirm-delete")[0];
@@ -121,11 +134,9 @@ $(document).ready(function () {
   });
   // preview file
   $("#preview-file").on("click", function () {
-    var name = contextMenu.dataset.Name;
-    // get folder name
-    var folderName = $("#folder-name").text();
-    url = `/media/uploads/${folderName}/${name}`;
-    window.open(url, "_blank");
+    //get url from the div's onlick
+    var url = contextMenu.dataset.url;
+    visit(url);
   });
   // add task
   $("#add-task").on("click", function () {

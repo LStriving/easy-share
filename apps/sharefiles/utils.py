@@ -206,13 +206,16 @@ def Django_path_get_path(file):
         return final_path
 
 @app.task
-def remove_tmp():
+def remove_tmp(all=False):
     '''
     Remove all tmp files which are older than 30 days
     '''
     tmp_dir = os.path.join(MEDIA_ROOT, 'tmp')
     current_time = time.time()
-    thirty_days_ago = current_time - (30 * 24 * 60 * 60)  # 30 days in seconds
+    if all:
+        end_time = current_time
+    else:
+        end_time = current_time - (30 * 24 * 60 * 60)  # 30 days in seconds
 
     for folder in os.listdir(tmp_dir):
         folder_path = os.path.join(tmp_dir, folder)
@@ -221,7 +224,11 @@ def remove_tmp():
                 file_path = os.path.join(folder_path, file)
                 if os.path.isfile(file_path):
                     file_mtime = os.path.getmtime(file_path)
-                    if file_mtime < thirty_days_ago:
+                    if file_mtime < end_time:
                         os.remove(file_path)
                         # log
                         print(f"Remove {file_path}")
+            # remove the folder if it is empty
+            if not os.listdir(folder_path):
+                os.rmdir(folder_path)
+                print(f"Remove {folder_path}")

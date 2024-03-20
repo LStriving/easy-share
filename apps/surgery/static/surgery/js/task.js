@@ -29,8 +29,10 @@ $(document).ready(function () {
               <span class="cell" data-label="task_result_url">${
                 item.task_result_url || " "
               }</span>
-              <span class="cell" data-label="task_status">
-              <i class="material-icons icon-${getIconName(item.task_status)}">
+              <span class="cell icon-${getIconName(
+                item.task_status
+              )}" data-label="task_status">
+              <i class="material-icons">
               ${getIconName(item.task_status)}</i>
               ${item.task_status}</span>
           </div>
