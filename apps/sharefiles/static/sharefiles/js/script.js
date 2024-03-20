@@ -365,7 +365,7 @@ async function handleUpload() {
   }
   //unblur_preloader the background
   document.getElementById("upload-file").style.display = "none";
-  $("body div:not(#upload-file)").css("filter", "blur(0px)");
+  $("body div:not(#upload-file,.upload-hints)").css("filter", "blur(0px)");
 
   // get folder id from the url
   let folder_id = window.location.pathname.split("/").pop();

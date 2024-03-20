@@ -20,7 +20,8 @@ class Folder(models.Model):
         
 
 def get_folder_name(instance, filename):
-    return os.path.join('uploads', instance.folder.name, filename)
+    user_id = instance.user.id if instance.user else 'unknown_user'
+    return os.path.join('uploads', f'user_{str(user_id)}', instance.folder.name, filename)
 
 class File(models.Model):
     # a model for uploaded files
