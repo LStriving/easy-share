@@ -77,7 +77,7 @@ def infer_jobs(task_id, video_path):
     except Exception as e:
         print("Extract frames failed: ", e)
         task.task_status='error'
-        task.task_result_url = "Extract frames failed, you may need to upload the video again."
+        task.task_result_url = "Extract frames failed, right-click to retry or try with another video."
         task.save()
         end_task_meta(task_id)
         return
