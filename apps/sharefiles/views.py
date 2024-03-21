@@ -4,7 +4,7 @@ from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_list_or_404
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.response import Response
-from EasyShare.settings.base import MAX_HANDLE_FILE
+from EasyShare.settings.base import BASE_DIR, MAX_HANDLE_FILE
 from apps.access.utils import *
 from apps.sharefiles.forms import ChunkFileForm
 from apps.sharefiles.utils import *
@@ -415,14 +415,17 @@ def large_file_instance_create(request,folder_id):
                 }
             )
             file.upload.name = get_folder_name(file,os.path.basename(res))
-            file.save()
             if not os.path.exists(Django_path_get_path(file)):
                 # copy res to file.upload.path
                 try:
+                    res = os.path.join(BASE_DIR,res) #TODO: fix this for windows
+                    print(res)
                     os.link(res,Django_path_get_path(file))
-                except FileExistsError:
-                    ...
-                    
+                    print(f"Link {res} to {Django_path_get_path(file)}")
+                except FileNotFoundError:
+                    return Response(status=status.HTTP_417_EXPECTATION_FAILED,
+                                    data={'message':'Merged file not found, please try to upload it again'})
+            file.save()
             if not_created:
                 user.storage += file.size
                 user.save()
@@ -497,7 +500,9 @@ def remove_large_file(request):
         except FileNotFoundError:
             return Response(status=status.HTTP_204_NO_CONTENT,data={'message':'File removed already'})
         except redis.exceptions.ConnectionError:
-            pass
+            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,data={'message':'Redis server not available'})
+        except ValueError as e:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
     elif file_md5 := data.get('md5'):
         # remove file
         try:
