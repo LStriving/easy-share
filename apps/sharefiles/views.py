@@ -415,13 +415,13 @@ def large_file_instance_create(request,folder_id):
                 }
             )
             file.upload.name = get_folder_name(file,os.path.basename(res))
-            if not os.path.exists(Django_path_get_path(file)):
-                # copy res to file.upload.path
+            if not os.path.exists(target_path:=Django_path_get_path(file)):
+                # copy res to target_path
                 try:
                     res = os.path.join(BASE_DIR,res) #TODO: fix this for windows
-                    print(res)
-                    os.link(res,Django_path_get_path(file))
-                    print(f"Link {res} to {Django_path_get_path(file)}")
+                    if not os.path.exists(dirs:=os.path.dirname(target_path)):
+                        os.makedirs(dirs)
+                    os.link(res,target_path)
                 except FileNotFoundError:
                     return Response(status=status.HTTP_417_EXPECTATION_FAILED,
                                     data={'message':'Merged file not found, please try to upload it again'})
