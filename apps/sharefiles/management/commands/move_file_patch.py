@@ -20,11 +20,14 @@ class Command(BaseCommand):
             # check if the file already exists
             if os.path.exists(file_new_path):
                 self.stdout.write(self.style.WARNING(
-                    f'File {os.path.basename(old_path)} already exists in {file_new_path}, skipping...'))
+                    f'File {os.path.basename(old_path)} ({instance.id}) already exists in {file_new_path}, skipping...'))
                 continue
             if os.path.exists(old_path) is False:
-                self.stdout.write(self.style.WARNING(
-                    f'File {os.path.basename(old_path)} does not exist in {old_path}, skipping...'))
+                if instance.upload.name != new_path:
+                    instance.upload.name = new_path
+                    instance.save()
+                self.stdout.write(self.style.ERROR(
+                    f'File {os.path.basename(old_path)} ({instance.id}) does not exist in {old_path}, skipping...'))
                 continue
             # Create directories if they don't exist
             os.makedirs(os.path.dirname(file_new_path), exist_ok=True)
@@ -35,5 +38,7 @@ class Command(BaseCommand):
             # Update the file field with the new path
             instance.upload.name = new_path
             instance.save()
+            self.stdout.write(self.style.SUCCESS(
+                f'File {os.path.basename(old_path)} ({instance.id}) moved to {file_new_path}'))
 
         self.stdout.write(self.style.SUCCESS('Files moved successfully'))

@@ -4,6 +4,7 @@ const CHUNK_SIZE = 5;
 const WAIT_MERGE = 3;
 const LACK_CHUNKS = 4;
 const PERMISSION_DENIED = 6;
+const FILE_NAME_DUPLICATED = 7;
 var uploaded_chunks_num = {};
 var filename = "";
 var num_uploading_files = 0;
@@ -291,6 +292,55 @@ function mergeChunks(hash, folder_id) {
   });
 }
 
+function check_filename(folder_id, filename) {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    xhr.open(
+      "GET",
+      "/easyshare/check_filename?folder_id=" +
+        folder_id +
+        "&filename=" +
+        filename
+    );
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    xhr.onload = function () {
+      if (xhr.status == 200) {
+        resolve(FILE_NAME_DUPLICATED);
+      } else if (xhr.status == 404) {
+        if (xhr.responseText == '"OK"') {
+          resolve("OK");
+        } else {
+          showNotification(
+            "error",
+            "Error",
+            JSON.parse(xhr.responseText).message
+          );
+          reject(new Error(xhr.responseText));
+        }
+      } else if (xhr.status == 500 || xhr.status == 503) {
+        showNotification(
+          "error",
+          "Server error",
+          "Server error, please try again later"
+        );
+        reject(new Error("Server error"));
+      } else {
+        showNotification(
+          "error",
+          "Error",
+          JSON.parse(xhr.responseText).message
+        );
+        reject(new Error(xhr.responseText));
+      }
+    };
+    xhr.onerror = function () {
+      console.error("Network error");
+      reject(new Error("Network error"));
+    };
+    xhr.send();
+  });
+}
+
 function create_file_instance(hash) {
   return new Promise((resolve, reject) => {
     var xhr = new XMLHttpRequest();
@@ -363,12 +413,30 @@ async function handleUpload() {
     showNotification("error", "Error", "Please select a video file");
     return;
   }
+  // check if the file is not larger than 2GB
+  if (file.size > 2 * 1024 * 1024 * 1024) {
+    showNotification("error", "Error", "File size should be less than 2GB");
+    return;
+  }
+  // check if the filename is not duplicated (send a request to the server to check)
+  let folder_id = window.location.pathname.split("/").pop();
+  var filename = await check_filename(folder_id, file.name);
+  if (filename === FILE_NAME_DUPLICATED) {
+    showNotification(
+      "error",
+      "Error",
+      "File name existed in this folder, please rename your upload file"
+    );
+    return;
+  } else if (filename !== "OK") {
+    return;
+  }
+
   //unblur_preloader the background
   document.getElementById("upload-file").style.display = "none";
   $("body div:not(#upload-file,.upload-hints)").css("filter", "blur(0px)");
 
   // get folder id from the url
-  let folder_id = window.location.pathname.split("/").pop();
 
   // display the preparing message
   $("body div:not(#preloader)").css("filter", "blur(5px)");

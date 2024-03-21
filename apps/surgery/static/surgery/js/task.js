@@ -81,7 +81,7 @@ $(document).ready(function () {
     }
     $("#delete-task").after(
       `<li class="item" id="${id}">
-      <span class="material-icons">${icon}</span>
+      <span class="material-icons w3-xlarge">${icon}</span>
       <span>${text}</span>
     </li>`
     );

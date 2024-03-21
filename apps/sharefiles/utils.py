@@ -122,7 +122,7 @@ def split_file_into_chunks(filename, chunk_size):
 
 
 @app.task
-def merge_chunks(md5,folder_name):
+def merge_chunks(md5,folder_name,user_id):
     # get locked:
     res = cache.get(f'{md5}_merged')
     if res is False:
@@ -145,12 +145,15 @@ def merge_chunks(md5,folder_name):
         try:
             chunk_file_path = [os.path.join(chunks_dir,i) for i in chunk_file_path]
             # start to merge
-            destination = os.path.join(MEDIA_ROOT,'uploads',
+            destination = os.path.join(MEDIA_ROOT,'uploads', f'user_{str(user_id)}',
                             folder_name,filename)
-            # TODO: change to add link count 
             if os.path.exists(destination):
-                destination = os.path.join(MEDIA_ROOT,'uploads',
-                            folder_name,random_prefix()+filename)
+                # the file may be corrupted,need to be checked
+                if md5 != get_file_md5(destination):
+                    ... # continue to merge from the beginning
+                else:
+                    cache.set(f'{md5}_merged',destination)
+                    return destination
             des_dir = os.path.dirname(destination)
             if not os.path.exists(des_dir):
                 os.makedirs(des_dir)

@@ -8,7 +8,7 @@ from EasyShare.settings.base import MAX_HANDLE_FILE
 from apps.access.utils import *
 from apps.sharefiles.forms import ChunkFileForm
 from apps.sharefiles.utils import *
-from .models import Folder, File
+from .models import Folder, File, get_folder_name
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
@@ -322,16 +322,6 @@ def large_file_upload_status(request):
         return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
     elif upload_status is True:
         # start to merge if all chunks uploaded
-        try:
-            folder_id = get_folder_id(file_md5)
-        except redis.exceptions.ConnectionError:
-            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        data={'message':'Redis server not available'})
-        try:
-            folder_name = Folder.objects.get(id=folder_id).name
-        except Folder.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
-        # merge_chunks.delay(file_md5,folder_name)
         return Response(status=status.HTTP_200_OK,data={'message':'All chunks uploaded'})
     elif isinstance(upload_status,set):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
@@ -420,12 +410,19 @@ def large_file_instance_create(request,folder_id):
                 folder=folder,
                 size=os.path.getsize(res),
                 defaults={
-                    "upload": res.split('media')[-1],
                     "type":mimetypes.guess_type(res)[0],
                     "md5":file_md5
                 }
             )
+            file.upload.name = get_folder_name(file,os.path.basename(res))
             file.save()
+            if not os.path.exists(Django_path_get_path(file)):
+                # copy res to file.upload.path
+                try:
+                    os.link(res,Django_path_get_path(file))
+                except FileExistsError:
+                    ...
+                    
             if not_created:
                 user.storage += file.size
                 user.save()
@@ -447,8 +444,9 @@ def merge_upload_chunks(request):
                     data={'message':'Redis server not available'})
     try:
         folder_name = Folder.objects.get(id=folder_id).name
+        user_id = Folder.objects.get(id=folder_id).user.id
     except Folder.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{folder_id})'})
     try:
         upload_status = get_file_status(file_md5)
     except redis.exceptions.ConnectionError:
@@ -457,7 +455,7 @@ def merge_upload_chunks(request):
     if upload_status is str:
         return Response(data=upload_status,status=status.HTTP_200_OK)
     try:
-        des = merge_chunks(file_md5,folder_name)
+        des = merge_chunks(file_md5,folder_name,user_id)
         if des is None:
             return Response(status=status.HTTP_202_ACCEPTED)
         if isinstance(des,str):
@@ -523,6 +521,27 @@ def remove_large_file(request):
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"file_id" or "md5" field is required'})
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_filename(request):
+    '''
+        get:
+            check if the file name is existed
+    '''
+    # get args
+    name = request.GET.get('filename')
+    folder_id = request.GET.get('folder_id')
+    if name is None or folder_id is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"name" and "folder_id" field are required'})
+    # check
+    try:
+        folder = Folder.objects.get(id=folder_id)
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'Folder not found'})
+    if File.objects.filter(name=name,folder=folder).exists():
+        return Response(status=status.HTTP_200_OK,data={'message':'File name existed'})
+    return Response(status=status.HTTP_404_NOT_FOUND,data='OK')
 
 class FileUploadView(TemplateView):
     template_name = 'sharefiles/file_upload.html'
