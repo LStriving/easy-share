@@ -322,16 +322,6 @@ def large_file_upload_status(request):
         return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'File not uploaded'})
     elif upload_status is True:
         # start to merge if all chunks uploaded
-        try:
-            folder_id = get_folder_id(file_md5)
-        except redis.exceptions.ConnectionError:
-            return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        data={'message':'Redis server not available'})
-        try:
-            folder_name = Folder.objects.get(id=folder_id).name
-        except Folder.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
-        # merge_chunks.delay(file_md5,folder_name)
         return Response(status=status.HTTP_200_OK,data={'message':'All chunks uploaded'})
     elif isinstance(upload_status,set):
         return Response(status=status.HTTP_206_PARTIAL_CONTENT,
@@ -383,7 +373,6 @@ def large_file_instance_create(request,folder_id):
     user = request.user
     # data = json.loads(data)
     file_md5 = data.get('md5')
-    cache.set(f'owner_{file_md5}',user.id)
     if file_md5 is None:
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data={'message':'"md5" field is required in JSON'})
@@ -427,6 +416,13 @@ def large_file_instance_create(request,folder_id):
             )
             file.upload.name = get_folder_name(file,os.path.basename(res))
             file.save()
+            if not os.path.exists(Django_path_get_path(file)):
+                # copy res to file.upload.path
+                try:
+                    os.link(res,Django_path_get_path(file))
+                except FileExistsError:
+                    ...
+                    
             if not_created:
                 user.storage += file.size
                 user.save()
@@ -448,8 +444,9 @@ def merge_upload_chunks(request):
                     data={'message':'Redis server not available'})
     try:
         folder_name = Folder.objects.get(id=folder_id).name
+        user_id = Folder.objects.get(id=folder_id).user.id
     except Folder.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{get_folder_id(folder_id)})'})
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':f'Folder not found (id:{folder_id})'})
     try:
         upload_status = get_file_status(file_md5)
     except redis.exceptions.ConnectionError:
@@ -458,7 +455,7 @@ def merge_upload_chunks(request):
     if upload_status is str:
         return Response(data=upload_status,status=status.HTTP_200_OK)
     try:
-        des = merge_chunks(file_md5,folder_name)
+        des = merge_chunks(file_md5,folder_name,user_id)
         if des is None:
             return Response(status=status.HTTP_202_ACCEPTED)
         if isinstance(des,str):
