@@ -8,7 +8,7 @@ from EasyShare.settings.base import MAX_HANDLE_FILE
 from apps.access.utils import *
 from apps.sharefiles.forms import ChunkFileForm
 from apps.sharefiles.utils import *
-from .models import Folder, File
+from .models import Folder, File, get_folder_name
 from .serializers import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
@@ -383,6 +383,7 @@ def large_file_instance_create(request,folder_id):
     user = request.user
     # data = json.loads(data)
     file_md5 = data.get('md5')
+    cache.set(f'owner_{file_md5}',user.id)
     if file_md5 is None:
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data={'message':'"md5" field is required in JSON'})
@@ -420,11 +421,11 @@ def large_file_instance_create(request,folder_id):
                 folder=folder,
                 size=os.path.getsize(res),
                 defaults={
-                    "upload": res.split('media')[-1],
                     "type":mimetypes.guess_type(res)[0],
                     "md5":file_md5
                 }
             )
+            file.upload.name = get_folder_name(file,os.path.basename(res))
             file.save()
             if not_created:
                 user.storage += file.size
@@ -523,6 +524,27 @@ def remove_large_file(request):
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR,data=str(e))
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"file_id" or "md5" field is required'})
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def check_filename(request):
+    '''
+        get:
+            check if the file name is existed
+    '''
+    # get args
+    name = request.GET.get('filename')
+    folder_id = request.GET.get('folder_id')
+    if name is None or folder_id is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"name" and "folder_id" field are required'})
+    # check
+    try:
+        folder = Folder.objects.get(id=folder_id)
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'Folder not found'})
+    if File.objects.filter(name=name,folder=folder).exists():
+        return Response(status=status.HTTP_200_OK,data={'message':'File name existed'})
+    return Response(status=status.HTTP_404_NOT_FOUND,data='OK')
 
 class FileUploadView(TemplateView):
     template_name = 'sharefiles/file_upload.html'
