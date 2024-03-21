@@ -6,7 +6,7 @@
   <form method="post" action="{% url 'login' %}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next }}" />
-    <label id="icon" for="name"><i class="icon-user"></i></label>
+    <label id="icon" for="name"><i class="fa fa-user"></i></label>
     <input
       type="text"
       name="username"
@@ -14,7 +14,7 @@
       placeholder="Name"
       required
     />
-    <label id="icon" for="name"><i class="icon-shield"></i></label>
+    <label id="icon" for="name"><i class="fa fa-shield"></i></label>
     <input
       type="password"
       name="password"

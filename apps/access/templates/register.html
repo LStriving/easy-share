@@ -5,7 +5,7 @@
       <h2 >Register</h2>
       <form method="post" action="{% url 'register' %}">
         {% csrf_token %}
-        <label id="icon" for="name"><i class="icon-envelope"></i></label>
+        <label id="icon" for="name"><i class="fa fa-envelope"></i></label>
         <input
           type="text"
           name="email"
@@ -13,7 +13,7 @@
           placeholder="Email"
           required
         />
-        <label id="icon" for="name"><i class="icon-user"></i></label>
+        <label id="icon" for="name"><i class="fa fa-user"></i></label>
         <input
           type="text"
           name="username"
@@ -21,7 +21,7 @@
           placeholder="Name"
           required
         />
-        <label id="icon" for="name"><i class="icon-shield"></i></label>
+        <label id="icon" for="name"><i class="fa fa-shield"></i></label>
         <input
           type="password"
           name="password1"
@@ -29,7 +29,7 @@
           placeholder="Password"
           required
         />
-        <label id="icon" for="name"><i class="icon-shield"></i></label>
+        <label id="icon" for="name"><i class="fa fa-shield"></i></label>
         <input
           type="password"
           name="password2"

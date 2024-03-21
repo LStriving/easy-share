@@ -15,7 +15,7 @@ $(document).ready(function () {
               folder.name +
               ">" +
               `<a href="/easyshare/file_list/${folder.id}">` +
-              '<i class="material-icons">folder</i></a><li>' +
+              '<span class="material-icons">folder</span></a><li>' +
               folder.name +
               //update the href to the folder detail page
               "</li></div>"
