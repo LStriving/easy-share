@@ -13,18 +13,26 @@
     <script src="{% static 'sharefiles/js/notification.js' %}"></script>
     <script src="{% static 'sharefiles/js/pagination.js' %}"></script>
     <script src="{% static 'access/js/csrf.js' %}"></script>
+    {% comment %}
     <link
-      href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.css"
+      href="{% static 'font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.css' %}"
       rel="stylesheet"
     />
+    {% endcomment %} {% comment %} footer icon {% endcomment %}
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
+    {% comment %} task icon {% endcomment %}
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      href="{%static 'node_modules/material-icons/iconfont/filled.css'%}"
       rel="stylesheet"
     />
+    <link
+      href="{%static 'node_modules/material-icons/iconfont/outlined.css'%}"
+      rel="stylesheet"
+    />
+
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"

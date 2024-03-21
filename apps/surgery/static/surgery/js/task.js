@@ -32,8 +32,8 @@ $(document).ready(function () {
               <span class="cell icon-${getIconName(
                 item.task_status
               )}" data-label="task_status">
-              <i class="material-icons">
-              ${getIconName(item.task_status)}</i>
+              <span class="material-icons">
+              ${getIconName(item.task_status)}</span>
               ${item.task_status}</span>
           </div>
           `);
@@ -81,7 +81,7 @@ $(document).ready(function () {
     }
     $("#delete-task").after(
       `<li class="item" id="${id}">
-      <i class="material-icons">${icon}</i>
+      <span class="material-icons">${icon}</span>
       <span>${text}</span>
     </li>`
     );
