@@ -43,7 +43,19 @@
         <div class="w3-bar w3-round pagination-links"></div>
       </div>
     </main>
-
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <script>
+        if ("{{ message.tags }}" == "success") {
+          showNotification("success", "{{ message.tags }}", "{{ message }}");
+        } else {
+          showNotification("error", "{{ message.tags }}", "{{ message }}");
+        }
+      </script>
+      {% endfor %}
+    </ul>
+    {% endif %}
     <footer>
       <!-- Your footer content goes here -->
     </footer>

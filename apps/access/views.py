@@ -48,7 +48,7 @@ class UserRetrieveUpdateView(RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsSelf]
 
-# TODO: not working
+
 class CustomLoginView(LoginView):
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -56,8 +56,8 @@ class CustomLoginView(LoginView):
         return response
 
     def form_invalid(self, form):
-        messages.error(self.request, 'Login failed. Please check your credentials.', extra_tags='login_failed')
-        return super().redender_to_response(self.get_context_data(form=form),messages=messages)
+        messages.error(self.request, 'Login failed. Please check your credentials.')
+        return super().render_to_response(self.get_context_data(form=form))
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])

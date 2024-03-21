@@ -122,14 +122,17 @@ ssh -NfR 4999:localhost:3344 root@luohailin.cn -o ServerAliveInterval=60  # no s
 - [x] User System
 - [x] Multiple working envs
 - [x] Docker Deploy
-- [ ] Logo url
+- [x] Logo url
 - [x] User guidance manual
 - [x] Large file removal strategy
-- [ ] Fix lacking port for media url when deploying on Docker
+- [x] Fix lacking port for media url when deploying on Docker
 - [x] lock redis cache for concurrent upload
 - [ ] Multiple upload
 - [ ] Prevent failed upload file from opening other sites from the users / Decrease the waiting time
 - [x] Task Site
-- [ ] smarter way for loading model and calling predict
+- [x] smarter way for loading model and calling predict
 - [ ] add hint for loading video
+- [x] hold icons in local
 - [ ] add support for mulitple files upload ()
+- [ ] add notification when task finished/failed
+- [ ] add notification feature

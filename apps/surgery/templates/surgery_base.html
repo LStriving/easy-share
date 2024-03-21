@@ -32,7 +32,10 @@
       href="{%static 'node_modules/material-icons/iconfont/outlined.css'%}"
       rel="stylesheet"
     />
-
+    <link
+      href="{% static 'font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.css' %}"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -45,5 +48,18 @@
     <div class="w3-container">
       <div class="w3-bar w3-round pagination-links"></div>
     </div>
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <script>
+        if ("{{ message.tags }}" == "success") {
+          showNotification("success", "{{ message.tags }}", "{{ message }}");
+        } else {
+          showNotification("error", "{{ message.tags }}", "{{ message }}");
+        }
+      </script>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </body>
 </html>
