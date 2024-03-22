@@ -49,7 +49,7 @@ def add_task(request):
     if not create:
         return Response(status=status.HTTP_201_CREATED)
     else:
-        infer_jobs.delay(task.id, Django_path_get_path(file))
+        infer_jobs.delay(task.id, Django_path_get_path(file),file.md5)
         return Response(status=status.HTTP_200_OK)
 
 class TaskList(generics.ListAPIView):

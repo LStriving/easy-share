@@ -1,0 +1,2 @@
+- same name for video when predicting but different content : patch command for change the video name to md5 name
+- clean unneccessary tmp file in time 

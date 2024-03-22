@@ -1,6 +1,7 @@
 # celery tasks
 import os
 import cv2
+import shutil
 import celery
 import redis
 from EasyShare.celery import app
@@ -41,7 +42,7 @@ def end_task_meta(task_id):
             cache.decr("launching_tasks_num")
 
 @app.task
-def infer_jobs(task_id, video_path):
+def infer_jobs(task_id, video_path, md5):
     '''
         pass video to model to infer
     '''
@@ -72,7 +73,7 @@ def infer_jobs(task_id, video_path):
         task.task_status='extracting frames'
         task.task_result_url = ''
         task.save()
-        extract_frame_jobs(video_path)
+        extract_frame_jobs(video_path, md5)
         logger.info("Frames extracted")
     except Exception as e:
         print("Extract frames failed: ", e)
@@ -128,13 +129,24 @@ def infer_jobs(task_id, video_path):
         task.save()
         end_task_meta(task_id)
         return
-    
+    # if the task is done, clear the extracted/processed tmp frames
+    clean_tmp_data(video_path, md5)
     # end task
     task.task_status='done'
     task.task_result_url='<a href="file_result?file_id='+str(task.file.id) + '">View Result</a>'
     task.save()
     end_task_meta(task_id)
     return
+
+def clean_tmp_data(video_path, md5):
+    # clean the tmp data when task is done (TODO: clean also when task failed)
+    # clean extracted frames
+    clean_extracted_frames(video_path, md5)
+    # clean seg output frames
+
+    # clean oad tmp frames
+    
+    ...
 
 @app.task
 def get_task_n_work():
@@ -152,9 +164,9 @@ def get_task_n_work():
         for task in tasks:
             logger.info(f"Send start signal to task({task.id}): ", task.task_name)
             # start the task
-            celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)])
+            celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)],task.file.md5)
 
-def extract_frame_jobs(video_path):
+def extract_frame_jobs(video_path, md5):
     '''
         extract video frames
     '''
@@ -162,6 +174,18 @@ def extract_frame_jobs(video_path):
     video_name = os.path.basename(video_path)
     extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True,single_thread=True,new_height=1080,new_width=1920)
     # output: EXTRACT_OUTPUT_DIR/video_name/{}_{}.jpg
+
+def clean_extracted_frames(video_path, md5):
+    '''
+        clean extracted video frames
+    '''
+    video_name = os.path.basename(video_path)
+    extracted_output_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    if not os.path.exists(extracted_output_dir):
+        logger.warning(f"Extracted frames not found in {extracted_output_dir}")
+    # remove dir
+    shutil.rmtree(extracted_output_dir)
+    
 
 def oad_jobs(video_path):
     '''
