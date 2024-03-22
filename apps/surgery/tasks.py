@@ -58,15 +58,16 @@ def infer_jobs(task_id, video_path, md5):
             return
         else:
             cache.incr("launching_tasks_num")
+            # add to running tasks
+            running_tasks = cache.get("running_tasks", [])
+            running_tasks.append(task_id)
+            cache.set("running_tasks", running_tasks)
     # get task
     task=Task.objects.get(id=task_id)
     logger.info("Infering video: ", video_path)
     task.task_status='executing'
     task.save()
-    # add to running tasks
-    running_tasks = cache.get("running_tasks", [])
-    running_tasks.append(task_id)
-    cache.set("running_tasks", running_tasks)
+    
     # extract frames
     try:
         logger.info("Extracting frames")
