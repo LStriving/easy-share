@@ -214,9 +214,8 @@ def oad_jobs(video_path,md5):
     args = Arg(cfg_files="apps/surgery/libs/oad/configs/Surgery/web.yaml",opts=opts)
     cfg = load_config(args,args.cfg_files)
     cfg = assert_and_infer_cfg(cfg)
-    save_dir = demo(cfg=cfg)
+    npy_file = demo(cfg=cfg)
     # get from result npy and transform to txt
-    npy_file = os.path.join(save_dir, video_name+'.npy')
     trans(npy_file_path=npy_file,txt_file_path=pre_file)
     get_dur_txt(input_file_path=pre_file,output_file_path=dur_file)
     # get duration
