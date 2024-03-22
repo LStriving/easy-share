@@ -351,6 +351,8 @@ def at_start(sender, **kwargs):
         task.task_status='pending'
         task.task_result_url = ''
         task.save()
+    cache.set("launching_tasks_num", 0)
+    cache.set("running_tasks", [])
     get_task_n_work()
 
 @worker_shutdown.connect
