@@ -44,7 +44,7 @@ class Command(BaseCommand):
             postfix = seg_vid.split(".")[-1]
             if seg_vid.split(".")[0] in to_rename:
                 os.rename(os.path.join(SEG_VIDEO_OUTPUT_DIR, seg_vid), os.path.join(SEG_VIDEO_OUTPUT_DIR, to_rename[seg_vid.split(".")[0]] +"." + postfix))
-                self.stdout.write(self.style.SUCCESS(f'Segmented video: {seg_vid} --> {to_rename[seg_vid]}'))
+                self.stdout.write(self.style.SUCCESS(f'Segmented video: {seg_vid} --> {to_rename[seg_vid.split(".")[0]]}'))
             else:
                 for file in files:
                     if file.name == seg_vid:
