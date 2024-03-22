@@ -356,7 +356,7 @@ def chunk_file_upload(request,folder_id):
             return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE,
                             data={'message':'Redis server not available'})
         handle_uploaded_chunk(request.FILES["chunk"],md5_value,index)
-        return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK,data={'message':'chunk uploaded'})
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST,
                         data={'message':'check the params'})

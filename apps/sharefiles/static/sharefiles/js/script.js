@@ -8,6 +8,8 @@ const FILE_NAME_DUPLICATED = 7;
 var uploaded_chunks_num = {};
 var filename = "";
 var num_uploading_files = 0;
+const fileReader = new FileReader();
+let hasher = null;
 
 // Function to get CSRF token from cookies
 
@@ -59,6 +61,38 @@ function md5File(file) {
   // Return the promise
   return promise;
 }
+function hashChunk(chunk) {
+  return new Promise((resolve, reject) => {
+    fileReader.onload = async (e) => {
+      const view = new Uint8Array(e.target.result);
+      hasher.update(view);
+      resolve();
+    };
+    fileReader.readAsArrayBuffer(chunk);
+  });
+}
+
+async function md5_new(file) {
+  const chunkSize = 64 * 1024 * 1024;
+  if (hasher) {
+    hasher.init();
+  } else {
+    hasher = await hashwasm.createMD5();
+  }
+
+  const chunkNumber = Math.floor(file.size / chunkSize);
+
+  for (let i = 0; i <= chunkNumber; i++) {
+    const chunk = file.slice(
+      chunkSize * i,
+      Math.min(chunkSize * (i + 1), file.size)
+    );
+    await hashChunk(chunk);
+  }
+
+  const hash = hasher.digest();
+  return Promise.resolve(hash);
+}
 // function to split a file into chunks of a given size
 function split(file, size) {
   // create an array to store the chunks
@@ -98,18 +132,39 @@ async function send(chunk, index, total, md5, filename, folder_id) {
   xhr.open("POST", "/easyshare/chunk/folder/" + folder_id);
   xhr.setRequestHeader("X-CSRFToken", csrftoken);
 
+  // xhr.upload.addEventListener(
+  //   "progress",
+  //   function (event) {
+  //     if (event.lengthComputable) {
+  //       // Calculate the cumulative progress of the current chunk
+  //       var chunkProgress = (event.loaded / event.total) * 100;
+  //       chunkProgress.toFixed(2);
+  //       // Update the progress bar with the cumulative progress
+  //       updateProgress(chunkProgress, md5);
+  //     }
+  //   },
+  //   false
+  // );
+
   // set the onload callback function
   xhr.onload = function () {
     if (xhr.status == 200) {
-      if (uploaded_chunks_num[md5] === undefined) {
-        uploaded_chunks_num[md5] = 1;
-      } else {
-        uploaded_chunks_num[md5] += 1;
+      var response = JSON.parse(xhr.responseText);
+      if (response.message) {
+        if (uploaded_chunks_num[md5] === undefined) {
+          uploaded_chunks_num[md5] = 1;
+        } else {
+          uploaded_chunks_num[md5] += 1;
+        }
+        if (uploaded_chunks_num[md5] === total) {
+          updateProgress(99.99, md5);
+        } else {
+          updateProgress(
+            ((uploaded_chunks_num[md5] / total) * 100).toFixed(2),
+            md5
+          );
+        }
       }
-      updateProgress(
-        ((uploaded_chunks_num[md5] / total) * 100).toFixed(2),
-        md5
-      );
     } else {
       // log an error message to the console
       console.error(
@@ -140,14 +195,11 @@ function calculate() {
   // return a promise for the asynchronous operations
   return new Promise((resolve, reject) => {
     // calculate the md5 hash of the file using the md5File function
-    md5File(file)
+    md5_new(file)
       .then(function (hash) {
         // display the hash in the span element by id "hash"
-        // document.getElementById("hash").textContent = hash;
         // split the file into chunks using the split function
         var chunks = split(file, CHUNK_SIZE);
-        // display the number of chunks in the span element by id "chunks"
-        // document.getElementById("chunks").textContent = chunks.length;
         // store the chunks, hash, and file name in global variables for later use
         window.chunks = chunks;
         window.hash = hash;
@@ -391,7 +443,7 @@ $(document).ready(function () {
 });
 
 function updateProgress(percentage, md5) {
-  percentage = Math.max(percentage, 100);
+  percentage = Math.min(percentage, 100);
   document.getElementById("progress-data-" + md5).innerHTML = percentage + "%";
   document.getElementById("progress-data-" + md5).style.width =
     percentage + "%";
@@ -414,8 +466,8 @@ async function handleUpload() {
     return;
   }
   // check if the file is not larger than 2GB
-  if (file.size > 2 * 1024 * 1024 * 1024) {
-    showNotification("error", "Error", "File size should be less than 2GB");
+  if (file.size > 5 * 1024 * 1024 * 1024) {
+    showNotification("error", "Error", "File size should be less than 5GB");
     return;
   }
   // check if the filename is not duplicated (send a request to the server to check)
