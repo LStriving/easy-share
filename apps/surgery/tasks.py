@@ -96,7 +96,7 @@ def infer_jobs(task_id, video_path, md5):
         task.task_status='SEG inferring'
         task.task_result_url = ''
         task.save()
-        seg_jobs(video_path)
+        seg_jobs_notmpframes(md5)
         logger.info("SEG model done")
     except Exception as e:
         print("SEG model failed: ", e)
@@ -120,7 +120,7 @@ def infer_jobs(task_id, video_path, md5):
         task.task_status='OAD inferring'
         task.task_result_url = ''
         task.save()
-        oad_jobs(video_path)
+        tmp_npy = oad_jobs(video_path,md5)
         logger.info("OAD model done")
     except Exception as e:
         logger.error("OAD model failed: ", e)
@@ -130,23 +130,22 @@ def infer_jobs(task_id, video_path, md5):
         end_task_meta(task_id)
         return
     # if the task is done, clear the extracted/processed tmp frames
-    clean_tmp_data(video_path, md5)
     # end task
     task.task_status='done'
     task.task_result_url='<a href="file_result?file_id='+str(task.file.id) + '">View Result</a>'
     task.save()
+    clean_tmp_data(md5, tmp_npy)
     end_task_meta(task_id)
     return
 
-def clean_tmp_data(video_path, md5):
+def clean_tmp_data(md5, tmp_npy):
     # clean the tmp data when task is done (TODO: clean also when task failed)
     # clean extracted frames
-    clean_extracted_frames(video_path, md5)
+    clean_extracted_frames(md5)
     # clean seg output frames
-
+    clean_seg_tmp_frames(md5)
     # clean oad tmp frames
-    
-    ...
+    os.remove(tmp_npy)
 
 @app.task
 def get_task_n_work():
@@ -172,30 +171,31 @@ def extract_frame_jobs(video_path, md5):
     '''
     video_dir = os.path.dirname(video_path)
     video_name = os.path.basename(video_path)
-    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,24,convert_to_rgb=True,resume=True,single_thread=True,new_height=1080,new_width=1920)
+    extract_frames(video_dir,video_name,EXTRACT_OUTPUT_DIR,md5,
+                24,convert_to_rgb=True,resume=True,single_thread=True,new_height=1080,new_width=1920)
     # output: EXTRACT_OUTPUT_DIR/video_name/{}_{}.jpg
 
-def clean_extracted_frames(video_path, md5):
+def clean_extracted_frames(md5):
     '''
         clean extracted video frames
     '''
-    video_name = os.path.basename(video_path)
-    extracted_output_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    extracted_output_dir = os.path.join(EXTRACT_OUTPUT_DIR, md5)
     if not os.path.exists(extracted_output_dir):
         logger.warning(f"Extracted frames not found in {extracted_output_dir}")
     # remove dir
-    shutil.rmtree(extracted_output_dir)
+    if os.path.isdir(extracted_output_dir):
+        shutil.rmtree(extracted_output_dir)
     
 
-def oad_jobs(video_path):
+def oad_jobs(video_path,md5):
     '''
         pass video to OAD model
     '''
     # generate npy
     video_name = os.path.basename(video_path).split('.')[0]
-    generate(EXTRACT_OUTPUT_DIR, TARGET_DIR, video_name)
-    pre_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_FILE_POSTFIX)
-    dur_file = os.path.join(OAD_FILE_OUTPUT_DIR, video_name+PRE_DUR_FILE_POSTFIX)
+    generate(EXTRACT_OUTPUT_DIR, TARGET_DIR, md5)
+    pre_file = os.path.join(OAD_FILE_OUTPUT_DIR, md5+PRE_FILE_POSTFIX)
+    dur_file = os.path.join(OAD_FILE_OUTPUT_DIR, md5+PRE_DUR_FILE_POSTFIX)
     if os.path.exists(pre_file) and os.path.exists(dur_file):
         print("Done already!")
         return
@@ -205,7 +205,7 @@ def oad_jobs(video_path):
         'DATA.PATH_TO_DATA_DIR', EXTRACT_OUTPUT_DIR,
         'DATA.VIDEO_FORDER','',
         'DATA.TARGET_FORDER', TARGET_DIR,
-        'DEMO.INPUT_VIDEO', [video_name],
+        'DEMO.INPUT_VIDEO', [md5],
         'OUTPUT_DIR', OAD_OUTPUT_NPY_DIR,
         'TEST.CHECKPOINT_FILE_PATH', OAD_CHECKPOINT,
         'DEMO.BENCHMARK', False,
@@ -219,18 +219,18 @@ def oad_jobs(video_path):
     trans(npy_file_path=npy_file,txt_file_path=pre_file)
     get_dur_txt(input_file_path=pre_file,output_file_path=dur_file)
     # get duration
+    return npy_file
 
-def seg_jobs(video_path):
+def seg_jobs(md5):
     '''
         pass video to segmentation model
         need to be resumable
     '''
-    video_name = os.path.basename(video_path)
-    video_name = video_name.split('.')[0]
-    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    
+    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, md5)
     assert os.path.exists(img_dir), f"{img_dir} not exists"
     img_list = os.listdir(img_dir)
-    out_dir = os.path.join(SEG_IMG_OUTPUT_DIR, video_name)
+    out_dir = os.path.join(SEG_IMG_OUTPUT_DIR, md5)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
         print(f"Create dir: {out_dir}")
@@ -253,8 +253,8 @@ def seg_jobs(video_path):
     # destroy the model
     del seg
     # save flags to file
-    interact_1_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_1_POSTFIX)
-    interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_8_POSTFIX)
+    interact_1_file = os.path.join(SEG_FILE_OUTPUT_DIR, md5+FILE_1_POSTFIX)
+    interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, md5+FILE_8_POSTFIX)
     if not os.path.exists(SEG_FILE_OUTPUT_DIR):
         os.makedirs(SEG_FILE_OUTPUT_DIR)
     with open(interact_1_file, 'w+') as f:
@@ -262,26 +262,32 @@ def seg_jobs(video_path):
     with open(interact_8_file, 'w+') as f:
         f.write("\n".join(flags_8_910))
     # save video
-    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, video_name+'.mp4')
+    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, md5+'.mp4')
     if not os.path.exists(SEG_VIDEO_OUTPUT_DIR):
         os.makedirs(SEG_VIDEO_OUTPUT_DIR)
 
     if not os.path.exists(video_out_path) or not try_reading_video(video_out_path):
-        frames2video(video_name, out_dir, video_out_path)
+        frames2video(md5, out_dir, video_out_path)
     # remove the frames
     for img in os.listdir(out_dir):
         os.remove(os.path.join(out_dir, img))
 
-def seg_jobs_notmpframes(video_path):
+def clean_seg_tmp_frames(video_path):
+    out_dir = os.path.join(SEG_IMG_OUTPUT_DIR, video_path)
+    if not os.path.exists(out_dir):
+        logger.warning(f"SEG frames not found in {out_dir}")
+    # remove dir
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
+
+def seg_jobs_notmpframes(md5):
     '''
         pass video to segmentation model
         and generate the result video without reading frames from disk
     '''
-    video_name = os.path.basename(video_path)
-    video_name = video_name.split('.')[0]
-    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, video_name)
+    img_dir = os.path.join(EXTRACT_OUTPUT_DIR, md5)
     assert os.path.exists(img_dir), f"{img_dir} not exists"
-    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, video_name+'.mp4')
+    video_out_path = os.path.join(SEG_VIDEO_OUTPUT_DIR, md5+'.mp4')
     if not os.path.exists(video_out_path) or not try_reading_video(video_out_path):
         if not os.path.exists(SEG_VIDEO_OUTPUT_DIR):
             os.makedirs(SEG_VIDEO_OUTPUT_DIR)
@@ -304,8 +310,8 @@ def seg_jobs_notmpframes(video_path):
         video_writer.release()
         del seg
         # save flags to file
-        interact_1_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_1_POSTFIX)
-        interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, video_name+FILE_8_POSTFIX)
+        interact_1_file = os.path.join(SEG_FILE_OUTPUT_DIR, md5+FILE_1_POSTFIX)
+        interact_8_file = os.path.join(SEG_FILE_OUTPUT_DIR, md5+FILE_8_POSTFIX)
         if not os.path.exists(SEG_FILE_OUTPUT_DIR):
             os.makedirs(SEG_FILE_OUTPUT_DIR)
         with open(interact_1_file, 'w') as f:

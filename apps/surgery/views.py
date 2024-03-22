@@ -88,11 +88,11 @@ def result_view(request):
     if task.task_status != "done":
         return Response(status=status.HTTP_202_ACCEPTED, data={"error":"Task is not finished yet"})
     # return result
-    result_video = os.path.join(SEG_VIDEO_OUTPUT_URL,task.file.name)
-    file_345 = os.path.join(SEG_FILE_OUTPUT_URL,task.file.name+FILE_1_POSTFIX)
-    file_910 = os.path.join(SEG_FILE_OUTPUT_URL,task.file.name+FILE_8_POSTFIX)
-    pred_pro = os.path.join(OAD_FILE_OUTPUT_URL,task.file.name+PRE_FILE_POSTFIX)
-    pred_dur = os.path.join(OAD_FILE_OUTPUT_URL,task.file.name+PRE_DUR_FILE_POSTFIX)
+    result_video = os.path.join(SEG_VIDEO_OUTPUT_URL,task.file.md5+".mp4")
+    file_345 = os.path.join(SEG_FILE_OUTPUT_URL,task.file.md5+FILE_1_POSTFIX)
+    file_910 = os.path.join(SEG_FILE_OUTPUT_URL,task.file.md5+FILE_8_POSTFIX)
+    pred_pro = os.path.join(OAD_FILE_OUTPUT_URL,task.file.md5+PRE_FILE_POSTFIX)
+    pred_dur = os.path.join(OAD_FILE_OUTPUT_URL,task.file.md5+PRE_DUR_FILE_POSTFIX)
     result = {
         "result_video":result_video,
         "file_345": file_345,
