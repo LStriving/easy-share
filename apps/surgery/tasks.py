@@ -163,7 +163,7 @@ def get_task_n_work():
         for task in tasks:
             logger.info(f"Send start signal to task({task.id}): ", task.task_name)
             # start the task
-            celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file)],task.file.md5)
+            celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file),task.file.md5])
 
 def extract_frame_jobs(video_path, md5):
     '''
