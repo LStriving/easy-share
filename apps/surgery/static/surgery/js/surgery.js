@@ -36,12 +36,21 @@ function playAlarm(alarm_id) {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+const demoMap = {
+  demo2: "18b69ec9dfc22569c488f9bc3cc3561c",
+  demo3: "a93bea5fd11e7f8c86df0f463ae18cf7",
+  demo4: "102ad6585483dfe6049f508d13807b5e",
+  demo5: "4e50abcbd9f2eb0168070620f3027eb3",
+};
+
+function loadFileData(option) {
   // Get elements
   const report_actions = document.querySelectorAll(".report-cls .time");
   const phase_actions_target = document.querySelectorAll(".recog-cls .target");
   const phase_actions_bar = document.querySelectorAll(".recog-cls .prob .bar");
   const videoElement = document.getElementById("surgeryVideo");
+  const colorBar = document.querySelector(".color-bar");
+  colorBar.style.background = `linear-gradient(to right, rgb(${item_color[0][0]}, ${item_color[0][1]}, ${item_color[0][2]}), rgb(${item_color[1][0]}, ${item_color[1][1]}, ${item_color[1][2]}))`;
 
   // Function to update predictions based on current video time
   function updatePredictions(pred, currentTime, duration) {
@@ -84,12 +93,26 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error(`Error reading file ${filePath}:`, error)
       );
   }
-
+  if (option === "demo1") {
+    file_list = [
+      "/media/demo/interact_1_345.txt",
+      "/media/demo/interact_8_910.txt",
+      "/media/demo/new4.txt",
+      "/media/demo/pred_videos_dur.txt",
+    ];
+  } else {
+    file_list = [
+      `/media/demo/${demoMap[option]}_1_345.txt`,
+      `/media/demo/${demoMap[option]}_8_910.txt`,
+      `/media/demo/${demoMap[option]}_pro.txt`,
+      `/media/demo/${demoMap[option]}_dur.txt`,
+    ];
+  }
   Promise.all([
-    fetchAndStoreData("/media/demo/interact_1_345.txt"),
-    fetchAndStoreData("/media/demo/interact_8_910.txt"),
-    fetchAndStorePred("/media/demo/new4.txt"),
-    fetchAndStorePred("/media/demo/pred_videos_dur.txt"),
+    fetchAndStoreData(file_list[0]),
+    fetchAndStoreData(file_list[1]),
+    fetchAndStorePred(file_list[2]),
+    fetchAndStorePred(file_list[3]),
   ]).then((results) => {
     const data1 = results[0];
     const data2 = results[1];
@@ -144,107 +167,68 @@ document.addEventListener("DOMContentLoaded", function () {
         updateTimeline(cur_pre, pred.length);
       });
     }
-  });
+    // Function to update summary report based on current video time
+    function updateSummaryReport(pred_dur, currentTime, ratio) {
+      // Calculate durations for the whole process and different actions
+      const wholeProcessDuration = formatDuration(currentTime);
+      var current_dur = pred_dur;
+      var current_dur_array = current_dur.split(" ");
+      var current_dur_array_float = [];
+      var current_dur_array_float_sorted = [];
+      for (var i = 0; i < current_dur_array.length; i++) {
+        current_dur_array_float.push(
+          formatDuration(parseFloat(current_dur_array[i]) / ratio)
+        );
+      }
+      // current_dur_array_float_sorted[0] = current_dur_array_float[7];
+      current_dur_array_float_sorted[1] = current_dur_array_float[7];
+      current_dur_array_float_sorted[2] = current_dur_array_float[6];
+      current_dur_array_float_sorted[3] = current_dur_array_float[0];
+      current_dur_array_float_sorted[4] = current_dur_array_float[1];
+      current_dur_array_float_sorted[5] = current_dur_array_float[2];
+      current_dur_array_float_sorted[6] = current_dur_array_float[3];
+      current_dur_array_float_sorted[7] = current_dur_array_float[4];
+      current_dur_array_float_sorted[8] = current_dur_array_float[5];
 
-  const surgeryForm = document.getElementById("surgeryForm");
-  surgeryForm.addEventListener("submit", function (event) {
-    event.preventDefault(); // prevent the form from submitting normally
-
-    // get the values of the form fields
-    var surgeon = document.getElementById("surgeon").value;
-    var patientID = document.getElementById("patientID").value;
-    var name = document.getElementById("name").value;
-    var age = document.getElementById("age").value;
-    var gender = document.getElementById("gender").value;
-
-    // create a div to hold the case information
-    var caseInfoDiv = document.getElementById("caseInfoDiv");
-
-    // increase the line height for readability
-    // create a p element to hold the time info
-    var timeInfo = document.createElement("p");
-    timeInfo.id = "timeInfo";
-    caseInfoDiv.appendChild(timeInfo);
-
-    caseInfoDiv.innerHTML = `
-          <p id="timeInfo"></p>
-          <p><strong>surgeon:</strong> ${surgeon}</p>
-          <p><strong>Patient ID:</strong> ${patientID}</p>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Age:</strong> ${age}</p>
-          <p><strong>Gender:</strong> ${gender}</p>
-          `;
-
-    caseInfoDiv.style.display = "block";
-
-    // add the case information div to the video div
-    var videoDiv = document.querySelector(".video");
-    videoDiv.appendChild(caseInfoDiv);
-    var now = new Date();
-    document.getElementById("timeInfo").innerHTML =
-      "<strong>CurrentTime:</strong> " +
-      now.toLocaleDateString() +
-      " " +
-      now.toLocaleTimeString();
-
-    // update the time info every second
-    setInterval(function () {
-      var now = new Date();
-      document.getElementById("timeInfo").innerHTML =
-        "<strong>CurrentTime:</strong> " +
-        now.toLocaleDateString() +
-        " " +
-        now.toLocaleTimeString();
-    }, 1000);
-  });
-
-  const colorBar = document.querySelector(".color-bar");
-  colorBar.style.background = `linear-gradient(to right, rgb(${item_color[0][0]}, ${item_color[0][1]}, ${item_color[0][2]}), rgb(${item_color[1][0]}, ${item_color[1][1]}, ${item_color[1][2]}))`;
-
-  const info_btn = document.querySelector(".case-btn");
-  info_btn.addEventListener("click", function () {
-    if (surgeryForm.style.display == "none") {
-      surgeryForm.style.display = "block";
-      info_btn.innerHTML = "Hide";
-    } else {
-      info_btn.innerHTML = "Show";
-      surgeryForm.style.display = "none";
+      for (let i = 1; i < report_actions.length; i++) {
+        let m = report_actions[i].querySelector("#minu");
+        let s = report_actions[i].querySelector("#sec");
+        m.innerHTML = current_dur_array_float_sorted[i][0];
+        s.innerHTML = current_dur_array_float_sorted[i][1];
+      }
+      report_actions[0].querySelector("#minu").innerHTML =
+        wholeProcessDuration[0];
+      report_actions[0].querySelector("#sec").innerHTML =
+        wholeProcessDuration[1];
     }
   });
+}
 
-  // Function to update summary report based on current video time
-  function updateSummaryReport(pred_dur, currentTime, ratio) {
-    // Calculate durations for the whole process and different actions
-    const wholeProcessDuration = formatDuration(currentTime);
-    var current_dur = pred_dur;
-    var current_dur_array = current_dur.split(" ");
-    var current_dur_array_float = [];
-    var current_dur_array_float_sorted = [];
-    for (var i = 0; i < current_dur_array.length; i++) {
-      current_dur_array_float.push(
-        formatDuration(parseFloat(current_dur_array[i]) / ratio)
-      );
+document.addEventListener("DOMContentLoaded", function () {
+  const selectElement = document.getElementById("demo");
+  const videoElement = document.getElementById("surgeryVideo");
+  loadFileData("demo1");
+  selectElement.addEventListener("change", (event) => {
+    const option = event.target.value;
+    switch (option) {
+      case "demo1":
+        videoElement.src = "/media/demo/new4_vis.mp4";
+        break;
+      case "demo2":
+        videoElement.src = `/media/demo/${demoMap.demo2}.mp4`;
+        break;
+      case "demo3":
+        videoElement.src = `/media/demo/${demoMap.demo3}.mp4`;
+        break;
+      case "demo4":
+        videoElement.src = `/media/demo/${demoMap.demo4}.mp4`;
+        break;
+      case "demo5":
+        videoElement.src = `/media/demo/${demoMap.demo5}.mp4`;
+        break;
     }
-    // current_dur_array_float_sorted[0] = current_dur_array_float[7];
-    current_dur_array_float_sorted[1] = current_dur_array_float[7];
-    current_dur_array_float_sorted[2] = current_dur_array_float[6];
-    current_dur_array_float_sorted[3] = current_dur_array_float[0];
-    current_dur_array_float_sorted[4] = current_dur_array_float[1];
-    current_dur_array_float_sorted[5] = current_dur_array_float[2];
-    current_dur_array_float_sorted[6] = current_dur_array_float[3];
-    current_dur_array_float_sorted[7] = current_dur_array_float[4];
-    current_dur_array_float_sorted[8] = current_dur_array_float[5];
-
-    for (let i = 1; i < report_actions.length; i++) {
-      let m = report_actions[i].querySelector("#minu");
-      let s = report_actions[i].querySelector("#sec");
-      m.innerHTML = current_dur_array_float_sorted[i][0];
-      s.innerHTML = current_dur_array_float_sorted[i][1];
-    }
-    report_actions[0].querySelector("#minu").innerHTML =
-      wholeProcessDuration[0];
-    report_actions[0].querySelector("#sec").innerHTML = wholeProcessDuration[1];
-  }
+    loadFileData(option);
+  });
 });
 
 function getCurrent(pred, currentTime, duration) {

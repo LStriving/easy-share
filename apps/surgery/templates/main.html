@@ -11,7 +11,8 @@
 <!-- Information Part (Left Side) -->
 <div class="app">
   <div class="information">
-    <div class="case-infomation">
+    <div class="case-infomation" style="margin-top: -30px">
+      {% comment %}
       <h3>
         Case Information
         <button class="case-btn">Hide</button>
@@ -70,6 +71,32 @@
           <button id="submit-btn" type="submit">Submit</button>
         </div>
       </form>
+      {% endcomment %}
+
+      <!--select demo source-->
+      <div class="form-item">
+        <h3>
+          <label for="demo" id="source">Video Source</label>
+        </h3>
+        <select
+          id="demo"
+          name="demo"
+          required
+          class="w3-select"
+          style="
+            height: 120%;
+            width: 60%;
+            margin-left: 25px;
+            margin-bottom: -10px;
+          "
+        >
+          <option value="demo1">中山眼科中心 剪辑版</option>
+          <option value="demo2">中山眼科中心 完整版</option>
+          <option value="demo3">石家庄人民医院 完整版</option>
+          <option value="demo4">邯郸市眼科医院 完整版</option>
+          <option value="demo5">重庆医科大学附属第三医院 完整版</option>
+        </select>
+      </div>
     </div>
 
     <div class="phase-recognition">

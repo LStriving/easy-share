@@ -211,6 +211,8 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 EMAIL_CODE_EXPIRED_TIME = 60 * 10 # 10MINS
 
+# admin (receive reports when deploy)
+ADMINS = [('liyirui','2625847986@qq.com')]
 MAX_HANDLE_FILE = 50
 
 PER_USER_STORAGE_LIMIT = 1073741824 * 5 # 1GB * 5
@@ -226,5 +228,25 @@ app.conf.beat_schedule = {
     'model-prediction-task': {
         'task': 'surgery.tasks.get_task_n_work',
         'schedule': crontab(minute='*/5')
+    },
+}
+
+# logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR', # 5XX (4XX:WARNING)
+            'propagate': True,
+        },
+        # Add more loggers if necessary
     },
 }
