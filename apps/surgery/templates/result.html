@@ -373,10 +373,10 @@
     }
 
     Promise.all([
-      fetchAndStoreData({{file_345}}),
-      fetchAndStoreData({{file_910}}),
-      fetchAndStorePred({{pred_pro}}),
-      fetchAndStorePred({{pred_dur}}),
+      fetchAndStoreData("{{file_345}}"),
+      fetchAndStoreData("{{file_910}}"),
+      fetchAndStorePred("{{pred_pro}}"),
+      fetchAndStorePred("{{pred_dur}}"),
     ]).then((results) => {
       const data1 = results[0];
       const data2 = results[1];

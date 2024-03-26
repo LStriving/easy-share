@@ -215,10 +215,10 @@ function loadFileData(option) {
     ];
   } else {
     file_list = [
-      `/media/demo/${demoMap[option]}_interact_1.txt`,
-      `/media/demo/${demoMap[option]}_interact_8.txt`,
-      `/media/demo/${demoMap[option]}_pro.txt`,
-      `/media/demo/${demoMap[option]}_dur.txt`,
+      `"/media/demo/${demoMap[option]}_interact_1.txt"`,
+      `"/media/demo/${demoMap[option]}_interact_8.txt"`,
+      `"/media/demo/${demoMap[option]}_pro.txt"`,
+      `"/media/demo/${demoMap[option]}_dur.txt"`,
     ];
   }
   
@@ -330,26 +330,13 @@ function loadFileData(option) {
     // Check if metadata is already loaded
     if (videoElement.readyState >= 2) {
       // Metadata is already loaded, add event listener for timeupdate immediately
-      console.log("Video metadata loaded");
       registerTimeUpdateListener();
     } else {
       // Add event listener to handle when the video metadata is loaded
-      console.log("not loaded yet, register event");
       videoElement.onloadedmetadata = registerTimeUpdateListener;
     }
   });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  const selectElement = document.getElementById("demo");
-  loadFileData("demo1");
-  if (selectElement) {
-    selectElement.addEventListener("change", (event) => {
-      const option = event.target.value;
-      loadFileData(option);
-    });
-  }
-});
 
 function getCurrent(pred, currentTime, duration) {
   var total_len = pred.length;
