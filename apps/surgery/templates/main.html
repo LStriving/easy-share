@@ -8,6 +8,19 @@
 <script src="{% static 'access/js/jquery.js' %}"></script>
 <script src="{% static 'surgery/js/surgery.js' %}"></script>
 
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+  const selectElement = document.getElementById("demo");
+  loadFileData("demo1");
+  if (selectElement) {
+    selectElement.addEventListener("change", (event) => {
+      const option = event.target.value;
+      loadFileData(option);
+    });
+  }
+});
+</script>
+
 <!-- Information Part (Left Side) -->
 <div class="app">
   <div class="information">

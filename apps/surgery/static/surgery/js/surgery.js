@@ -9,7 +9,7 @@ const actionNames = [
   "Corneal incision by 15 degree keratome",
   "Idle",
 ];
-let src = ''
+let src = "";
 const idx_map = [
   [0, 7],
   [1, 6],
@@ -49,9 +49,7 @@ function fetchAndStoreData(filePath) {
     .then((data) => {
       return parseFrames(data); // Return frames
     })
-    .catch((error) =>
-      console.error(`Error reading file ${filePath}:`, error)
-    );
+    .catch((error) => console.error(`Error reading file ${filePath}:`, error));
 }
 function fetchAndStorePred(filePath) {
   return fetch(filePath)
@@ -59,9 +57,7 @@ function fetchAndStorePred(filePath) {
     .then((data) => {
       return parsePred(data); // Return frames
     })
-    .catch((error) =>
-      console.error(`Error reading file ${filePath}:`, error)
-    );
+    .catch((error) => console.error(`Error reading file ${filePath}:`, error));
 }
 // function to update the prediction on the video
 function updatePredictionOnVideo(
@@ -165,16 +161,16 @@ function loadFileData(option) {
   const timeline_blocks = document.querySelectorAll(
     ".timeline-box .cls-line .blocks"
   );
-  timeline_blocks.forEach(line => {
+  timeline_blocks.forEach((line) => {
     line.innerHTML = "";
-  })
+  });
   // clear bar and target
-  phase_actions_target.forEach(target => {
-    target.style.background = '';
-  })
-  phase_actions_bar.forEach(bar => {
-    bar.style.width = '';
-  })
+  phase_actions_target.forEach((target) => {
+    target.style.background = "";
+  });
+  phase_actions_bar.forEach((bar) => {
+    bar.style.width = "";
+  });
   var phaseInfoDiv = document.getElementById("phaseInfoDiv");
   phaseInfoDiv.style.display = "none";
   const iconContainer = document.getElementById("icon-container");
@@ -183,7 +179,6 @@ function loadFileData(option) {
     iconContainer.removeChild(iconContainer.firstChild);
   }
 
-  
   // Function to update predictions based on current video time
   function updatePredictions(pred, currentTime, duration) {
     pred_sorted = [];
@@ -204,7 +199,7 @@ function loadFileData(option) {
       bar.style.width = `${prob * 100}%`;
     }
   }
-  
+
   // determine what data to read based on the option
   if (option === "demo1") {
     file_list = [
@@ -215,13 +210,13 @@ function loadFileData(option) {
     ];
   } else {
     file_list = [
-      `/media/demo/${demoMap[option]}_interact_1.txt`,
-      `/media/demo/${demoMap[option]}_interact_8.txt`,
-      `/media/demo/${demoMap[option]}_pro.txt`,
-      `/media/demo/${demoMap[option]}_dur.txt`,
+      `"/media/demo/${demoMap[option]}_interact_1.txt"`,
+      `"/media/demo/${demoMap[option]}_interact_8.txt"`,
+      `"/media/demo/${demoMap[option]}_pro.txt"`,
+      `"/media/demo/${demoMap[option]}_dur.txt"`,
     ];
   }
-  
+
   // Read data from file and register update function
   Promise.all([
     fetchAndStoreData(file_list[0]),
@@ -299,13 +294,13 @@ function loadFileData(option) {
         pred_dur.length / videoElement.duration
       );
       updateTimeline(cur_pre, pred.length);
-    }
+    };
     const registerTimeUpdateListener = function () {
       // Add event listener for updating predictions during video playback
       videoElement.ontimeupdate = updateAll;
-    }
+    };
     // Load video data
-    if (src !== '') {
+    if (src !== "") {
       videoElement.ontimeupdate = null;
       videoElement.onloadedmetadata = null;
     }
@@ -326,30 +321,17 @@ function loadFileData(option) {
         videoElement.src = `/media/demo/${demoMap.demo5}.mp4`;
         break;
     }
-    src = 'changed';
+    src = "changed";
     // Check if metadata is already loaded
     if (videoElement.readyState >= 2) {
       // Metadata is already loaded, add event listener for timeupdate immediately
-      console.log("Video metadata loaded");
       registerTimeUpdateListener();
     } else {
       // Add event listener to handle when the video metadata is loaded
-      console.log("not loaded yet, register event");
       videoElement.onloadedmetadata = registerTimeUpdateListener;
     }
   });
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  const selectElement = document.getElementById("demo");
-  loadFileData("demo1");
-  if (selectElement) {
-    selectElement.addEventListener("change", (event) => {
-      const option = event.target.value;
-      loadFileData(option);
-    });
-  }
-});
 
 function getCurrent(pred, currentTime, duration) {
   var total_len = pred.length;
@@ -417,8 +399,6 @@ function parsePred(data) {
   return data.split("\n").map((line) => line.trim());
 }
 
-
-
 const item_color = [
   [255, 255, 255],
   [8, 55, 117],
@@ -435,7 +415,6 @@ function prob2color(prob) {
   }
   return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
 }
-
 
 function createBlockItem(color) {
   const block = document.createElement("div");
