@@ -38,7 +38,7 @@ $(document).ready(function () {
         }
         data.results.forEach(function (file) {
           $("#file-list").append(
-            `<div onclick=visit('${file.upload}'); class=folder data-file-id=${file.id} data-file-name=${file.name} data-url=${file.upload}>` +
+            `<div onclick=visit('${file.upload}'); class=folder data-file-id=${file.id} data-file-name=${file.name} data-url=${file.upload} title=${file.name}>` +
               '<span class="material-icons">video_file</span><li>' +
               file.name +
               "</li></div>"

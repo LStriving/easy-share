@@ -17,6 +17,9 @@ main {
 div :not(.w3-dropdown-content){
   overflow: visible;
 }
+li {
+  overflow: hidden;
+}
 
 .folder * {
   width: 100px;
@@ -31,6 +34,7 @@ div :not(.w3-dropdown-content){
   border-radius: 2px;
   /* //overflow: hidden; */
   cursor: pointer;
+  text-overflow: ellipsis;
 }
 .folder:hover h1 {
   display: none;

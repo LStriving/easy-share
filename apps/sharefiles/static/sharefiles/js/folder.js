@@ -13,6 +13,8 @@ $(document).ready(function () {
               folder.id +
               " data-folder-name=" +
               folder.name +
+              " title=" +
+              folder.name +
               ">" +
               `<a href="/easyshare/file_list/${folder.id}">` +
               '<span class="material-icons">folder</span></a><li>' +
