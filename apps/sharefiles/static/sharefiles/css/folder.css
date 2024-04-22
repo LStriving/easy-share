@@ -14,11 +14,8 @@ body {
 main {
   padding: 20px 50px;
 }
-div :not(.w3-dropdown-content){
+div :not(li, .w3-dropdown-content){
   overflow: visible;
-}
-li {
-  overflow: hidden;
 }
 
 .folder * {
