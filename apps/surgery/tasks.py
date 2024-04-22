@@ -140,13 +140,15 @@ def infer_jobs(task_id, video_path, md5):
     return
 
 def clean_tmp_data(md5, tmp_npy):
-    # clean the tmp data when task is done (TODO: clean also when task failed)
-    # clean extracted frames
-    clean_extracted_frames(md5)
-    # clean seg output frames
-    clean_seg_tmp_frames(md5)
-    # clean oad tmp frames
-    os.remove(tmp_npy)
+    try:
+        # clean extracted frames
+        clean_extracted_frames(md5)
+        # clean seg output frames
+        clean_seg_tmp_frames(md5)
+        # clean oad tmp frames
+        os.remove(tmp_npy)
+    except Exception as e:
+        logger.warning("Clean tmp data failed: ", e)
 
 @app.task
 def get_task_n_work():
