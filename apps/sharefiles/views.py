@@ -25,7 +25,7 @@ class IsFolderOwner(permissions.BasePermission):
             folder_id = request.GET.get('folder_id')
         else:
             folder_id = view.kwargs.get('folder_id',0)
-        print(f"Folder id: {folder_id}")
+        # print(f"Folder id: {folder_id}")
         folder = Folder.objects.filter(id=folder_id).first()
         if request.user is None:
             print('User not found!')

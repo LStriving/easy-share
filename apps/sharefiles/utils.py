@@ -157,10 +157,10 @@ def merge_chunks(md5,folder_name,user_id):
             des_dir = os.path.dirname(destination)
             if not os.path.exists(des_dir):
                 os.makedirs(des_dir)
-            print(f"Merging {chunks_dir} into {destination}")
+            # print(f"Merging {chunks_dir} into {destination}")
             with open(destination,'wb')as out:
                 for chunk in sorted(chunk_file_path,key=lambda x: int(os.path.basename(x))):
-                    print(f"Merging {chunk}")
+                    # print(f"Merging {chunk}")
                     with open(chunk,'rb')as f:
                         content = f.read()
                         out.write(content)

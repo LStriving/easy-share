@@ -38,7 +38,7 @@ function playAlarm(alarm_id) {
 
 const demoMap = {
   demo2: "18b69ec9dfc22569c488f9bc3cc3561c",
-  demo3: "a93bea5fd11e7f8c86df0f463ae18cf7",
+  demo3: "12b7183a21ab82681d4696aea7743d5a",
   demo4: "102ad6585483dfe6049f508d13807b5e",
   demo5: "4e50abcbd9f2eb0168070620f3027eb3",
 };
