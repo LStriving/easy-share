@@ -1,6 +1,14 @@
 # Easy Share
 
-## Clone the project
+Django project for surgery video analysis, containing apps with function:
+    - **administration**
+    - **sharefiles (upload large files)**
+    - **offline model prediction**
+    <!-- **online prediction**(websocket), -->
+
+## Get Started
+
+### Clone the project
 
 ```bash
 # clone with submodules
@@ -10,9 +18,9 @@ git clone <project-url>
 git submodule update --init --recursive # if you wish to use the machine learning model
 ```
 
-### Large file
+### Download Large file (Optional)
 
-Install [git lfs](https://git-lfs.com/) to clone large file for the machine learning model
+Install [git lfs](https://git-lfs.com/) to clone large file for the machine learning model checkpoint.
 
 ```bash
 # clone large file (if you have git lfs installed)
@@ -20,16 +28,16 @@ git lfs install
 git lfs pull
 ```
 
-## Installation for Local
-
-### Optional
+### Start with Local
 
 ```bash
 conda create -n dj python=3.10
 conda activate dj
 ```
 
-#### Checkpoints
+#### (Optional) Download Checkpoints
+
+If you want to use the machine learning model, you need to download the checkpoints for the model.
 
 ```bash
 cd ./apps/surgery/libs/oad
@@ -40,13 +48,14 @@ git lfs install
 git lfs pull
 ```
 
-### Requirements install
+#### Install Requirements
 
 ```bash
 pip install -r requirements.txt
 pip install -U channels["daphne"] #channels (for websocket)
-pip install nvidia-ml-py3 # for gpu monitoring
 ```
+
+#### Prepare database for Server
 
 ```bash
 python manage.py makemigrations access sharefiles
@@ -60,11 +69,7 @@ python manage.py migrate
 python manage.py collectstatic
 ```
 
-```bash
-python manage.py runserver
-```
-
-### Email
+#### Email
 
 Use email function: create file name `.env` under `EasyShare/settings` folder
 
@@ -77,18 +82,18 @@ SECRET_KEY=
 
 > Remember not to leave space in `.env` file
 
-### Redis
+#### Redis
 
-### Celery
+#### Celery
 
-#### Local
+##### Local
 
 ```bash
 celery -A EasyShare worker
 celery -A EasyShare beat
 ```
 
-#### Deploy
+##### Deploy
 
 ```bash
 # Start worker
@@ -97,13 +102,21 @@ celery -A EasyShare worker -c gevent
 celery -A EasyShare beat
 ```
 
-## Installation for Docker
+#### Start Server
+
+```bash
+python manage.py runserver
+```
+
+### Start with Docker
+
+Github token is required for downloading the submodules(external repositories)
 
 ```bash
 GITHUB_TOKEN={your_personal_access_token} docker-compose build --shm-size=16GB
 ```
 
-### remote forward
+### Remote forward
 
 ```bash
 # ssh -R remote_port:localhost:local_port ssh_server_hostname
@@ -128,10 +141,10 @@ ssh -NfR 4999:localhost:3344 root@luohailin.cn -o ServerAliveInterval=60  # no s
 - [x] Fix lacking port for media url when deploying on Docker
 - [x] lock redis cache for concurrent upload
 - [ ] Multiple upload
-- [ ] Prevent failed upload file from opening other sites from the users / Decrease the waiting time
+- [x] Prevent failed upload file from opening other sites from the users / Decrease the waiting time
 - [x] Task Site
 - [x] smarter way for loading model and calling predict
-- [ ] add hint for loading video
+- [x] add hint for loading video
 - [x] hold icons in local
 - [ ] add support for mulitple files upload ()
 - [ ] add notification when task finished/failed
