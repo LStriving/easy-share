@@ -21,6 +21,7 @@ const idx_map = [
   [7, 5],
   [8, 8],
 ];
+let videoFPS = 0;
 // Function to create speaker icon
 function createSpeakerIcon() {
   const icon = document.createElement("div");
@@ -208,6 +209,7 @@ function loadFileData(option) {
       "/media/demo/new4.txt",
       "/media/demo/pred_videos_dur.txt",
     ];
+    videoFPS = 25;
   } else {
     file_list = [
       `"/media/demo/${demoMap[option]}_interact_1.txt"`,
@@ -215,6 +217,7 @@ function loadFileData(option) {
       `"/media/demo/${demoMap[option]}_pro.txt"`,
       `"/media/demo/${demoMap[option]}_dur.txt"`,
     ];
+    videoFPS = 24;
   }
 
   // Read data from file and register update function
@@ -379,7 +382,7 @@ function getPhase(pred) {
 }
 
 function getComment(data1, data2, currentTime) {
-  var currentFrame = Math.floor(currentTime * 25);
+  var currentFrame = Math.floor(currentTime * videoFPS);
   if (data1[currentFrame] || data2[currentFrame]) {
     if (data1[currentFrame]) {
       playAlarm("alarm-1");

@@ -3,8 +3,9 @@
 
 <header class="bgimg w3-display-container" id="home">
   <div class="w3-display-middle w3-center">
-    <span class="w3-text-white" style="font-size: 90px"
-      >Intraoperative<br />Navigation</span
+    <span class="w3-text-white" style="font-size: 50px"
+      >Intraoperative Navigation System for Minimally Invasive Glaucoma
+      Surgery</span
     >
     <div class="center" style="display: flex; align-item: center">
       <div class="content">
@@ -21,35 +22,42 @@
 <div class="grid w3-light-grey">
   <div class="w3-row-padding w3-padding-64 w3-container">
     <div class="w3-content">
-      <h1>房角切开术导航系统</h1>
+      <h1>120 degree Goniotomy Navigation System (GNS)</h1>
       <div class="w3-padding-32">
-      <div class="w3-twothird">
-        <h5 class="">
-          房角切开术（Goniotomy，GT）是一种微创青光眼手术（minimally invasive
-          glaucoma surgery, MIGS），通过切除小梁网（trabecular meshwork,
-          TM）和施氏管（Schlemm’s
-          canal）内壁，减少流出阻力，促进水液排出。目前120°
-          GT已被证明能够充分治疗开角型青光眼。在120°GT手术中，用精细的微钩切开TM——即“房角切开”的步骤，是最关键和复杂的阶段，准确定位TM尤其重要，对TM辨识不清会严重影响预后。然而，将TM作为GT手术的解剖焦点具有挑战性,由于前房角的解剖结构错综复杂，而且个体形态变化很大，即使是非青光眼的眼科专家也较难快速识别。因此，在以GT为首的一系列抗青光眼手术中，提供由术中专家动作驱动的、实时精确的指导，在提高手术安全性和积极影响患者预后方面具有重要的临床价值。
-        </h5>
+        <div class="w3-twothird">
+          <h5 style="text-align: justify">
+            The integration of computer-assisted technology to assist the
+            surgeons seamlessly remains a critical challenge. Addressing this,
+            we present the deep learning (DL) based goniotomy navigation system
+            (GNS), a pioneering tool for <strong> real-time guidance</strong> in
+            minimally invasive glaucoma surgery.
+          </h5>
+          <h5 class="w3-padding-32" style="text-align: justify">
+            Trained on a substantial dataset comprising
+            <strong>5 million</strong> frames from 186 anonymized videos from
+            three medical institutions, the GNS is designed to complete two
+            critical tasks:
+            <i>identifying 8 surgical phases of goniotomy (Task I)</i>, and
+            <i
+              >tracking 10 different key instruments and anatomical structures
+              (Task II)</i
+            >. Each video was annotated by three independent ophthalmologists.
+            The agreement between the audio alert outputs agreed upon by the
+            expert panel and those predicted by the GNS was assessed utilizing
+            ICC. The acceptability and usefulness of the GNS was assessed
+            through post hoc survey collected from 12 glaucoma surgeons at
+            varying expertise levels.
+          </h5>
+        </div>
+
+        <div class="w3-third w3-center">
+          <img
+            src="/static/surgery/img/onsurgery2.png"
+            class="w3-image w3-round-xlarge w3-margin-left w3-margin-top w3-margin-bottom"
+            style="width: 100%"
+          />
+        </div>
       </div>
-      <div class="w3-third w3-center">
-        <img
-        src="/static/surgery/img/onsurgery2.png"
-        class="w3-image w3-round-xlarge w3-margin-left w3-margin-top w3-margin-bottom"
-        style="width: 100%"
-        />
-      </div>
-      </div>
-      <h5 class="w3-margin-top w3-padding-32" >
-        为了解诀这个问题，我们推出了一种用于微创青光眼手术实时引导的开创性工具——<strong
-          >基于深度学习的房角切开术导航系统（goniotomy navigation system,
-          GNS）</strong
-        >，用于评估基于深度学习的在原发性开角型青光眼患者的120°
-        GT手术中提供实时术中引导的性能。
-        在纳入了来自三个医疗中心的总计<strong>498.6万帧</strong>的不同专家手术视频数据的基础上，此研究划定了的精确的手术步骤识别注释协议，完成大样本的视频数据精细标注，构建120°
-        GT手术的优质数据集。该系统能够分析120°
-        GT的视频流输入（在此网页中分析仅针对完整手术视频），实时识别正在进行的步骤（任务一），并跟踪和识别关键手术器械和解剖结构（任务二）。在实时手术室中，可根据不同手术步骤提供以行动为导向的术中手术参考和音频提示，同时跟踪关键器械和解剖结构。该系统的实施有可能促进手术的决策，并降低手术误伤的风险，有望成为提高手术精度和效率，促进审慎判断，帮助及时决策，并尽可能降低意外伤害风险。
-      </h5>
     </div>
   </div>
 </div>
@@ -57,7 +65,7 @@
 <!-- Second Grid -->
 <div class="w3-row-padding w3-padding-64 w3-container">
   <div class="w3-content">
-    <h1>任务介绍</h1>
+    <h1>Algorithm Architecture</h1>
     <div class="w3-twothird w3-center">
       <img
         src="/static/surgery/img/framework.png"
@@ -66,35 +74,72 @@
       />
     </div>
     <div class="w3-third">
-      <h5 class="w3-padding-32">
-        在任务一中，我们将GT划分为八个可辨认的阶段：角膜切开、卡巴胆碱注射、眼科手术黏弹性辅助剂（ophthalmic
-        viscoelastic devices,
-        OVD）注射、房角镜下观察、GT、OVD冲洗/抽吸、切口关闭和中间穿插的空闲阶段。
+      <h5 class="w3-padding-32" style="text-align: justify">
+        For Task I, we employed a Transformer-based method named
+        <strong
+          >End-to-End Long-form Online Action Detection (E2E-LOAD)
+        </strong>
+        network for its superior performance and code availability. In line with
+        contemporary experimental protocols, we sampled frames from videos at a
+        frequency of 24 frames per second (FPS) and structured the video into
+        chunks of 6 frames. Decision-making occurred at the chunk level,
+        allowing evaluation of surgical steps every 0.25 seconds.
       </h5>
-      <h5 class="w3-padding-32">
-        在任务二中，GNS实现了实时识别的解剖结构有：角膜缘、虹膜、小梁网。
-        GNS能够实时识别的器械包括：有齿镊、角膜切开刀（15度、3.2mm）、冲洗针头、I/A手柄（Irrigation/Aspiration
-        handpiece ）、房角镜、Kahook双刃刀（Kahook Dual Blade, KDB，New World
-        Medical，Rancho Cucamonga，CA）和TMH显微钩（Tanito microhook, TMH，Inami
-        & Co，Ltd，Tokyo，Japan）。
+      <h5 class="w3-padding-32" style="text-align: justify">
+        In Task II, we employed the state-of-the-art real-time semantic
+        segmentation network known as
+        <strong>
+          Proportional-Integral-Derivative (PID) Controller Network (PIDNet) </strong
+        >. The input image was resized to 1536×1024 pixels during training, and
+        model evaluation was conducted at the original resolution of 1920×1080
+        pixels.
       </h5>
     </div>
-    <p class="w3-text-grey">
-      注意，由于此系统训练数据集未纳入白内障手术的相关步骤和器械标注，因此GNS对于白内障手术步骤效果将明显下降，乃至有判断错误的可能。
-    </p>
   </div>
 </div>
 
 <!-- Third Grid -->
 <div class="w3-row-padding w3-padding-64 w3-container w3-light-grey">
   <div class="w3-content">
-    <div class="w3-center">
-      <h1 style="margin-left: -40px; margin-right: 40px">步骤示意</h1>
-      <img
-        src="/static/surgery/img/phase.png"
-        class="w3-image"
-        style="width: 68%"
-      />
+    <div class="w3-third">
+      <h1 style="margin-left: -40px; margin-right: 40px">Task Setting</h1></br>
+      <strong>8 Phases for Task I</strong>
+      <ul>
+        <li>Corneal incision by 3.2 mm keratome</li>
+        <li>Corneal incision by 15-degree</li>
+        <li>keratome Carbachol injection </li>
+        <li>OVD injection Gonioscopy observation</li>
+        <li>Incision of Schlemm's canal </li>
+        <li>OVD removal </li>
+        <li>Wound closure </li>
+        <li>Other</li>
+      </ul>
+      <strong>10 Key instruments and anatomical structures</strong></br>
+      <i>Structure</i>
+      <ul>
+        <li>Cornea limbus</li>
+        <li>Iris</li>
+        <li>Trabecular Meshwork</li>
+      </ul>
+      <i>Instrument</i>
+      <ul>
+        <li>Toothed Microforceps</li>
+        <li>Keratome</li>
+        <li>Irrigation cannula</li>
+        <li>I/A handpiece</li>
+        <li>Gonioscope</li>
+        <li>KDB</li>
+        <li>TMH</li>
+      </ul>
+
+    </div>
+    <div class="w3-twothird">
+        <img
+          src="/static/surgery/img/phase.png"
+          class="w3-image"
+          style="width: 100%"
+        />
+      </li>
     </div>
   </div>
 </div>
