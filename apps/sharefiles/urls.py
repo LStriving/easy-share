@@ -22,4 +22,5 @@ urlpatterns = [
     path(r'merge_chunks',views.merge_upload_chunks,name='merge_chunks'),
     path(r'large_file_remove',views.remove_large_file,name='remove_large_file'),
     path(r'check_filename',views.check_filename,name='check_filename'),
+    path(r'folder_rename/<int:folder_id>',views.rename_folder,name='folder_rename'),
 ]

@@ -139,6 +139,27 @@ class FolderDelete(generics.DestroyAPIView):
             print(e)
             print(f'Warning: Local folder id: {id} remove failed! Some files may be removed.')
 
+@api_view(['POST','GET'])
+@permission_classes([permissions.IsAuthenticated])
+def rename_folder(request,folder_id):
+    try:
+        folder = Folder.objects.get(id=folder_id)
+    except Folder.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND,data={'message':'Folder not found'})
+    if folder.user != request.user:
+        return Response(status=status.HTTP_403_FORBIDDEN,data={'message':'Permission denied'})
+    if request.method == 'GET':
+        data = request.GET
+    elif request.method == 'POST' :
+        data = request.POST
+    name = data.get('name')
+    if name is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'"name" field is required'})
+    if Folder.objects.filter(user=request.user,name=name).exists():
+        return Response(status=status.HTTP_400_BAD_REQUEST,data={'message':'Folder name should be unique'})
+    folder.name = name
+    folder.save()
+    return Response(status=status.HTTP_200_OK)
 
 class SharedFolderDetail(generics.ListAPIView):
     '''

@@ -134,6 +134,7 @@ $(document).ready(function () {
     showContextMenu(e, contextMenu, folder_id, folder_name);
   });
 
+  // delete folder
   const confirmDialog = document.getElementsByClassName("confirm-delete")[0];
   $("#delete-folder").on("click", function () {
     // display the confirm dialog
@@ -162,5 +163,49 @@ $(document).ready(function () {
         showNotification("error", "Error", "An error occurred");
       },
     });
+  });
+
+  // rename folder
+  const renameFolderModal = document.getElementById("rename-folder-modal");
+  $("#rename-folder").on("click", function () {
+    renameFolderModal.style.display = "block";
+  });
+
+  function renameFolder() {
+    var folderName = $("#new-folder-name").val();
+    var folderId = contextMenu.dataset.Id;
+    if (folderName) {
+      $.ajax({
+        url: `/easyshare/folder_rename/${folderId}`,
+        method: "GET",
+        data: { name: folderName },
+        beforeSend: function (xhr, settings) {
+          xhr.setRequestHeader("X-CSRFToken", getCSRFToken());
+        },
+        success: function () {
+          renameFolderModal.style.display = "none";
+          crr_page = loadFolders(crr_page); // After renaming, reload the files
+          showNotification("success", "Success", "Folder renamed successfully");
+        },
+        error: function (error) {
+          console.error(error);
+          showNotification("error", "Error", "An error occurred");
+        },
+      });
+    }
+  }
+
+  $("#confirm-rename-folder").on("click", function () {
+    renameFolder();
+  });
+
+  $("#cancel-rename-btn").on("click", function () {
+    renameFolderModal.style.display = "none";
+  });
+
+  $("#new-folder-name").on("keypress", function (e) {
+    if (e.which === 13) {
+      renameFolder();
+    }
   });
 });

@@ -33,6 +33,9 @@
         <span class="material-icons w3-xlarge">delete</span>
         <span>Delete</span>
       </li>
+      <li class="item" id="rename-folder">
+        <span class="material-icons w3-xlarge">edit</span>
+        <span>Rename</span>
     </ul>
   </div>
 </div>
@@ -45,5 +48,17 @@
   <p>Are you sure you want to delete folder <span id="delete-folder-name"></span>?</p>
   <button type="button" class="cancel-delete">Cancel</button>
   <button id="confirm-delete-btn" class="confirm-delete-btn">Delete</button>
+</div>
+
+{% comment %} confirm dialog for Rename {% endcomment %}
+<div id="rename-folder-modal" class="confirm-delete testbox center_box" style="display: none">
+  <h2>Rename Folder</h2>
+  <hr />
+  <div id="rename-folder-form">
+    <label for="new-folder-name">New Name</label>
+    <input type="text" id="new-folder-name" required />
+  </div>
+  <button id="cancel-rename-btn" class="cancel-rename">Cancel</button>
+  <button id="confirm-rename-folder" class="confirm-rename-folder">Rename</button>
 </div>
 {% endblock %}
