@@ -24,6 +24,7 @@ if OAD_ENABLE == '1':
     from apps.surgery.libs.oad.src.config.defaults import assert_and_infer_cfg
 from django.db.models import Q
 from celery.utils.log import get_task_logger
+from apps.surgery.utils import task_success_notification, task_fail_notification
 
 logger = get_task_logger(__name__)
 
@@ -82,6 +83,7 @@ def infer_jobs(task_id, video_path, md5):
         task.task_result_url = "Extract frames failed, right-click to retry or try with another video."
         task.save()
         end_task_meta(task_id)
+        task_fail_notification(task.user, task)
         return
     # pass to SEG model
     free_mem = get_free_gpu_memory(GPU_DEVICE)
@@ -105,6 +107,7 @@ def infer_jobs(task_id, video_path, md5):
         task.task_result_url = "SEG model failed" 
         task.save()
         end_task_meta(task_id)
+        task_fail_notification(task.user, task)
         return
     # pass to OAD model
     # inspect GPU memory usage first
@@ -128,6 +131,7 @@ def infer_jobs(task_id, video_path, md5):
         task.task_status='error'
         task.task_result_url = "OAD model failed"
         task.save()
+        task_fail_notification(task.user, task)
         end_task_meta(task_id)
         return
     # if the task is done, clear the extracted/processed tmp frames
@@ -137,6 +141,8 @@ def infer_jobs(task_id, video_path, md5):
     task.save()
     clean_tmp_data(md5, tmp_npy)
     end_task_meta(task_id)
+
+    task_success_notification(task.user, task)
     return
 
 def clean_tmp_data(md5, tmp_npy):
@@ -188,7 +194,6 @@ def clean_extracted_frames(md5):
     # remove dir
     if os.path.isdir(extracted_output_dir):
         shutil.rmtree(extracted_output_dir)
-    
 
 def oad_jobs(video_path,md5):
     '''

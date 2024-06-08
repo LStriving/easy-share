@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'apps.sharefiles',
     'apps.video_rtc',
     'apps.surgery',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +106,8 @@ DATABASES = {
     }
 }
 
+# notifications
+DJANGO_NOTIFICATIONS_CONFIG = { 'SOFT_DELETE': True, 'USE_JSONFIELD': True}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

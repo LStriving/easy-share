@@ -19,9 +19,9 @@ from django.urls import re_path as url
 from django.urls import path,include
 from rest_framework_swagger.views import get_swagger_view
 from django.views.static import serve
-from django.contrib.auth import views as auth_views
 
 from EasyShare.settings.base import MEDIA_ROOT    # 导入相关静态文件处理的views控制包
+import notifications.urls
 
 schema_view = get_swagger_view(title='EasyShare API')
 
@@ -35,5 +35,5 @@ urlpatterns = [
     url('media/(?P<path>.*)$', serve, {'document_root': MEDIA_ROOT}),
     url(r'^doc$', schema_view,name='documentation'),
     path("",include("surgery.urls")),
-    # path("",auth_views.LoginView.as_view(template_name='./login.html'),name='login')
+    url('^inbox/notifications/', include(notifications.urls, namespace='notifications')),
 ]

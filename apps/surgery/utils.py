@@ -5,6 +5,9 @@ import torch
 from torch.types import Device
 from typing import Union
 from apps.surgery.libs.seg.surgical_seg_api import SegAPI
+from notifications.signals import notify
+# from apps.surgery.models import Task
+
 
 def get_free_gpu_memory(device:Union[int, Device]=None):
     '''
@@ -78,6 +81,14 @@ def load_model():
     if not hasattr(load_model, "model"):
         load_model.model = SegAPI()
     return load_model.model
+
+def task_success_notification(user, task):
+    notify.send(user, recipient=user, verb="Task Success", level="success", public=False,
+                description=f"Task {str(task)} has been completed successfully")
+
+def task_fail_notification(user, task):
+    notify.send(user, recipient=user, verb="Task Fail", level="error", public=False,
+                description=f"Task {str(task)} has failed: {task.task_result_url}")
 
 if __name__ == "__main__":
     print(get_free_gpu_memory(0))
