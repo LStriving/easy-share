@@ -1,4 +1,4 @@
-{% comment %} include js for login info {% endcomment %}
+{% load notifications_tags %} {% notifications_unread as unread_count %}
 <div class="w3-top" id="navigation">
   <div class="w3-row w3-padding">
     <div style="width: 40%">
@@ -33,6 +33,12 @@
           >{{ request.user.username }}</a
         >
         <div class="w3-dropdown-content" style="overflow: visible">
+          <a href="/user/notification" class="w3-button w3-block w3-black"
+            >Inbox{% if unread_count %}
+            <span class="noti-badge w3-red">{{ unread_count }}</span>
+            {% endif %}
+          </a>
+
           <a href="/user/logout" class="w3-button w3-block w3-black">Logout</a>
         </div>
         {% else %}
