@@ -4,14 +4,15 @@ import cv2
 import shutil
 import celery
 import redis
+import traceback
 from EasyShare.celery import app
 from celery.signals import worker_ready, worker_shutdown
 from django.core.cache import cache
-from EasyShare.settings.base import DATA_INFO, FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, OAD_CHECKPOINT, OAD_FILE_OUTPUT_DIR, OAD_OUTPUT_NPY_DIR, OAD_OUTPUT_DIR,\
+from EasyShare.settings.base import DATA_INFO, FILE_1_POSTFIX, FILE_8_POSTFIX, GPU_DEVICE, MEDIA_URL, OAD_CHECKPOINT, OAD_FILE_OUTPUT_DIR, OAD_OUTPUT_NPY_DIR, OAD_OUTPUT_DIR,\
 MAX_EXECUTING_TASK_AT_ONCE, PRE_DUR_FILE_POSTFIX, PRE_FILE_POSTFIX,SEG_FILE_OUTPUT_DIR, SEG_IMG_OUTPUT_DIR, TARGET_DIR, SEG_VIDEO_OUTPUT_DIR,EXTRACT_OUTPUT_DIR
 from apps.sharefiles.utils import Django_path_get_path
 from .models import Task
-from .utils import avi_to_web_mp4, get_free_gpu_memory, Arg, try_reading_video, frames2video
+from .utils import avi_to_web_mp4, get_free_gpu_memory, Arg, try_reading_video, frames2video, write_error_log
 from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 from apps.surgery.libs.oad.tools.frames_extraction import extract_frames
 from apps.sharefiles.redis_pool import POOL
@@ -26,7 +27,11 @@ from django.db.models import Q
 from celery.utils.log import get_task_logger
 from apps.surgery.utils import task_success_notification, task_fail_notification
 
-logger = get_task_logger(__name__)
+
+logger = get_task_logger('tasks')
+env = os.environ.get("DJANGO_SETTINGS_MODULE").split('.')[-1]
+if env == 'dev':
+    logger.setLevel('DEBUG')
 
 def end_task_meta(task_id):
     '''
@@ -47,6 +52,7 @@ def infer_jobs(task_id, video_path, md5):
     '''
         pass video to model to infer
     '''
+    logger.debug(f"Try to launch task: {task_id}")
     conn = redis.Redis(connection_pool=POOL)
     with conn.lock('task_lock'):
         running_num = cache.get("launching_tasks_num", 0)
@@ -65,7 +71,7 @@ def infer_jobs(task_id, video_path, md5):
             cache.set("running_tasks", running_tasks)
     # get task
     task=Task.objects.get(id=task_id)
-    logger.info("Infering video: ", video_path)
+    logger.info(f"Infering video: {video_path}")
     task.task_status='executing'
     task.save()
     
@@ -78,9 +84,11 @@ def infer_jobs(task_id, video_path, md5):
         extract_frame_jobs(video_path, md5)
         logger.info("Frames extracted")
     except Exception as e:
-        print("Extract frames failed: ", e)
+        logger.error(f"Extract frames failed (task id:{task_id}): {traceback.format_exc()}")
         task.task_status='error'
-        task.task_result_url = "Extract frames failed, right-click to retry or try with another video."
+        task.task_result_url = f'Extract frames failed, right-click to retry or try with another video.\
+                                <a href="/{MEDIA_URL}log/{task_id}.log">View log</a>'
+        write_error_log('extract frame failed: '+str(e), task_id)
         task.save()
         end_task_meta(task_id)
         task_fail_notification(task.user, task)
@@ -88,7 +96,7 @@ def infer_jobs(task_id, video_path, md5):
     # pass to SEG model
     free_mem = get_free_gpu_memory(GPU_DEVICE)
     if free_mem < 5:
-        print("GPU memory is not enough")
+        logger.info("GPU memory is not enough")
         task.task_status='pending'
         task.task_result_url = "GPU memory is not enough, waiting for next round"
         task.save()
@@ -102,9 +110,10 @@ def infer_jobs(task_id, video_path, md5):
         seg_jobs_notmpframes(md5)
         logger.info("SEG model done")
     except Exception as e:
-        print("SEG model failed: ", e)
+        logger.error(f"SEG model failed (task id:{task_id}): {traceback.format_exc()}")
         task.task_status='error'
-        task.task_result_url = "SEG model failed" 
+        task.task_result_url = f'SEG model failed, <a href="/{MEDIA_URL}log/{task_id}.log">view log</a>' 
+        write_error_log("SEG model failed: "+str(e), task_id)
         task.save()
         end_task_meta(task_id)
         task_fail_notification(task.user, task)
@@ -113,7 +122,7 @@ def infer_jobs(task_id, video_path, md5):
     # inspect GPU memory usage first
     free_mem = get_free_gpu_memory(GPU_DEVICE)
     if free_mem < 6:
-        print("GPU memory is not enough")
+        logger.info("GPU memory is not enough")
         task.task_status='pending'
         task.task_result_url = "GPU memory is not enough, waiting for next round"
         task.save()
@@ -127,9 +136,10 @@ def infer_jobs(task_id, video_path, md5):
         tmp_npy = oad_jobs(video_path,md5)
         logger.info("OAD model done")
     except Exception as e:
-        logger.error("OAD model failed: ", e)
+        logger.error(f"OAD model failed (task id:{task_id}): {traceback.format_exc()}")
         task.task_status='error'
-        task.task_result_url = "OAD model failed"
+        task.task_result_url = f'OAD model failed, <a href="/{MEDIA_URL}log/{task_id}.log">view log</a>'
+        write_error_log("OAD model failed: "+str(e), task_id)
         task.save()
         task_fail_notification(task.user, task)
         end_task_meta(task_id)
@@ -141,7 +151,6 @@ def infer_jobs(task_id, video_path, md5):
     task.save()
     clean_tmp_data(md5, tmp_npy)
     end_task_meta(task_id)
-
     task_success_notification(task.user, task)
     return
 
@@ -154,7 +163,7 @@ def clean_tmp_data(md5, tmp_npy):
         # clean oad tmp frames
         os.remove(tmp_npy)
     except Exception as e:
-        logger.warning("Clean tmp data failed: ", e)
+        logger.warning(f"Clean tmp data failed: {e}")
 
 @app.task
 def get_task_n_work():
@@ -170,7 +179,7 @@ def get_task_n_work():
         # get first MAX_EXECUTING_TASK_AT_ONCE tasks to do (sorted by created time)
         tasks = tasks.order_by('task_created_time')
         for task in tasks:
-            logger.info(f"Send start signal to task({task.id}): ", task.task_name)
+            logger.info(f"Send start signal to task({task.id}): {task.task_name}" )
             # start the task
             celery.current_app.send_task('surgery.tasks.infer_jobs',[task.id, Django_path_get_path(task.file),task.file.md5])
 
@@ -354,12 +363,15 @@ def at_start(sender, **kwargs):
     if not tasks:
         logger.info("No error tasks to retry")
     for task in tasks:
-        logger.info("Starting task: ", task.task_name)
+        logger.info(f"Starting task: {task.task_name}")
         task.task_status='pending'
         task.task_result_url = ''
         task.save()
     cache.set("launching_tasks_num", 0)
     cache.set("running_tasks", [])
+    # destroy the lock
+    conn = redis.Redis(connection_pool=POOL)
+    conn.delete('task_lock')
     get_task_n_work()
 
 @worker_shutdown.connect
@@ -378,7 +390,7 @@ def at_end(sender, **kwargs):
         pass
     with sender.app.connection() as conn:
         for task in tasks:
-            logger.info("Ending task: ", task.task_name)
+            logger.warning(f"Ending task: {task.task_name}")
             task.task_status='pending'
             task.task_result_url = 'backend shutdown, task is pending again'
             task.save()

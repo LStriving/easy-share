@@ -36,7 +36,6 @@ sys.path.insert(0,os.path.join(BASE_DIR, 'apps'))
 DEBUG = True
 
 CORS_ORIGIN_ALLOW_ALL = True
-
 ALLOWED_HOSTS = ['luohailin.cn', 'localhost','127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['http://luohailin.cn:4080','http://luohailin.cn:4070',r'http://luohailin.cn:\d+/']
 # Daphne
@@ -235,6 +234,7 @@ app.conf.beat_schedule = {
 }
 
 # logging
+LOG_DIR = os.path.join(BASE_DIR, MEDIA_URL, 'log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -243,13 +243,25 @@ LOGGING = {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
         },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'log/error.log'),
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+        },
     },
     'loggers': {
         'django': {
             'handlers': ['mail_admins'],
             'level': 'ERROR', # 5XX (4XX:WARNING)
             'propagate': True,
+            'include_html': True,
         },
         # Add more loggers if necessary
+        'tasks': {
+            'handlers': ['mail_admins','error_file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
     },
 }

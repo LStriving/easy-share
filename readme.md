@@ -146,6 +146,7 @@ ssh -NfR 4999:localhost:3344 root@luohailin.cn -o ServerAliveInterval=60  # no s
 - [x] smarter way for loading model and calling predict
 - [x] add hint for loading video
 - [x] hold icons in local
-- [ ] add support for mulitple files upload ()
-- [ ] add notification when task finished/failed
 - [ ] add notification feature
+- [ ] en/zh switch
+- [x] view task logs
+- [x] compress model checkpoint (comsume more space when using onnx)

@@ -4,6 +4,7 @@ import os
 import torch
 from torch.types import Device
 from typing import Union
+from EasyShare.settings.base import LOG_DIR
 from apps.surgery.libs.seg.surgical_seg_api import SegAPI
 from notifications.signals import notify
 # from apps.surgery.models import Task
@@ -89,6 +90,13 @@ def task_success_notification(user, task):
 def task_fail_notification(user, task):
     notify.send(user, recipient=user, verb="Task Fail", level="error", public=False,
                 description=f"Task {str(task)} has failed: {task.task_result_url}")
+
+def write_error_log(error_msg:str, task_id=None, log_dir=LOG_DIR):
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_path = os.path.join(log_dir, f"{task_id}.log")
+    with open(log_path, 'w') as f:
+        f.write(f"TASK {task_id}: {error_msg}")
 
 if __name__ == "__main__":
     print(get_free_gpu_memory(0))

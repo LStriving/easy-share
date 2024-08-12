@@ -14,4 +14,10 @@ class Task(models.Model):
     def __str__(self):
         return self.task_name + " " + self.file.name
     
-admin.site.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('id','task_name', 'task_status', 'task_result_url', 'task_created_time')
+    search_fields = ('id','task_name', 'task_status', 'task_result_url', 'task_created_time')
+    list_filter = ('id','task_name', 'task_status', 'task_result_url', 'task_created_time')
+    ordering = ('id','task_name', 'task_status', 'task_result_url', 'task_created_time')
+
+admin.site.register(Task, TaskAdmin)
