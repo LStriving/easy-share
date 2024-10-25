@@ -1,0 +1,61 @@
+services:
+  celery:
+    build: .
+    command:
+      celery -A EasyShare worker --logfile=log/celery.log --pidfile= --loglevel=info
+      -P solo
+    depends_on:
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
+    restart: on-failure:3
+    volumes:
+      - .:/app
+  celery-beat:
+    build: .
+    command: celery -A EasyShare beat --loglevel=info --logfile=log/celery-beat.log
+    depends_on:
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
+    restart: always
+    volumes:
+      - .:/app
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./redis:/redisdata
+  web:
+    build: .
+    depends_on:
+      - redis
+      - celery
+      - celery-beat
+    environment:
+      - LANGUAGE_CODE=en-us
+      - TIME_ZONE=UTC
+    volumes:
+      - .:/app
+      - ./media:/app/media
+      - ./log:/app/log
+      - ./static:/app/static
+  web_migrate:
+    command:
+      bash -c "python manage.py collectstatic --noinput && python manage.py
+      makemigrations access sharefiles && python manage.py migrate"
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
+      - PYTHONPATH=/apps/surgery/libs/oad:/slowfast:$PYTHONPATH
+    extends:
+      service: web
+  web_run:
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
+    extends:
+      service: web
+    ports:
+      - 3344:8000
+    restart: always
+version: "3"
