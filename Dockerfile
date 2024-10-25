@@ -54,6 +54,7 @@ RUN git lfs pull
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=EasyShare.settings.test
 
+RUN mkdir -p /app/log && touch /app/log/error.log
 # Run additional commands within the Conda environment
 RUN python manage.py collectstatic --noinput
 RUN python manage.py makemigrations --empty access 

@@ -116,6 +116,8 @@ Github token is required for downloading the submodules(external repositories)
 GITHUB_TOKEN={your_personal_access_token} docker-compose build --shm-size=16GB
 ```
 
+Remember to set SRECET_KEY and EMAIL in the `.env` file
+
 ### Remote forward
 
 ```bash

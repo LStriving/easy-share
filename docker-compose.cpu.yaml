@@ -1,6 +1,8 @@
 services:
   celery:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
     command:
       celery -A EasyShare worker --logfile=log/celery.log --pidfile= --loglevel=info
       -P solo
@@ -12,7 +14,9 @@ services:
     volumes:
       - .:/app
   celery-beat:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
     command: celery -A EasyShare beat --loglevel=info --logfile=log/celery-beat.log
     depends_on:
       - redis
@@ -27,7 +31,9 @@ services:
     volumes:
       - ./redis:/redisdata
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
     depends_on:
       - redis
       - celery
