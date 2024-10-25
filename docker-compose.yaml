@@ -16,6 +16,7 @@ services:
       - redis
       - celery
       - celery-beat
+      - web_migrate
   web_migrate:
     extends:
       service: web

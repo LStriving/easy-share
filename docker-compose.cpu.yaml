@@ -38,6 +38,7 @@ services:
       - redis
       - celery
       - celery-beat
+      - web_migrate
     environment:
       - LANGUAGE_CODE=en-us
       - TIME_ZONE=UTC
