@@ -1,6 +1,6 @@
 ARG GITHUB_TOKEN
 # Use the official PyTorch image with GPU support
-FROM pytorch/pytorch:2.0.0-cpu
+FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
 
 # Django environment
