@@ -16,14 +16,13 @@ services:
       - redis
       - celery
       - celery-beat
-      - web_migrate
   web_migrate:
     extends:
       service: web
     environment:
       - DJANGO_SETTINGS_MODULE=EasyShare.settings.test
       - PYTHONPATH=/apps/surgery/libs/oad:$PYTHONPATH
-    command: bash -c "python manage.py collectstatic --noinput && python manage.py makemigrations access sharefiles && python manage.py migrate"
+    command: bash -c "python manage.py collectstatic --noinput && python manage.py makemigrations access sharefiles surgery && python manage.py migrate"
   web_run:
     extends:
       service: web
