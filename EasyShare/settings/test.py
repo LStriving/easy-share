@@ -4,7 +4,9 @@ from .base import *
 os.environ.setdefault('OAD_ENABLE', '1')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'EasyShare.settings.test')
 
-ALLOWED_HOSTS = ['127.0.0.1','hailin545.cn','luohailin.cn','localhost','47.113.193.7']
+ALLOWED_HOSTS = ['127.0.0.1','hailin545.cn','luohailin.cn','localhost','47.113.193.7','surgery.carnation.cloud-ip.biz']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 CACHES = {
     "default": {
