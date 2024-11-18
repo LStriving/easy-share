@@ -58,7 +58,7 @@ pip install -U channels["daphne"] #channels (for websocket)
 #### Prepare database for Server
 
 ```bash
-python manage.py makemigrations access sharefiles
+python manage.py makemigrations access sharefiles surgery
 ```
 
 ```bash
